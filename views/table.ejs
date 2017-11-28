@@ -15,8 +15,96 @@
 <body>
 <div class="container">
 
-    <h2> HERE THE GAME STARTS </h2>
+
+
+	<div class="row">
+	<div><a href="/logout" class="btn btn-default btn-sm">Logout</a></div>
+	<br>
+	<button type="button" class="btn btn-default">Join Table</button>
+	</div>
+	<br>
+
+	<div class="row" id="block-row">
+	</div>
 
 </div>
 </body>
+
+<script type="text/javascript">
+
+		createTable(5, 5);
+
+		function createTable(num_rows, num_cols) {
+
+			// alert("coming here...");
+
+			let row = document.getElementById('block-row');
+
+			let colHTML = ``;
+
+			for (let i = 0; i < num_cols; i++) {
+				let col = `<div class="col-sm-1" style="padding: 0; margin:3px;" id="block-col` + (i+1) + `">`;
+
+				for (let j = 0; j < num_rows; j++) {
+					col = col + `<div id="` + (i+1) + `-` + (j+1) + `" style="text-align: center; width:100%; background-color: yellow; margin-bottom:3px; height: 100px"
+					onclick="onCellClick(this)" >
+					<span id="cellDigits" style="font-size:xx-large">0</span>
+					</div>`;
+				}
+
+				col = col + `</div>`;
+				colHTML = colHTML + col;
+			}
+			row.innerHTML = colHTML;
+
+			// console.log(colHTML);
+		}
+
+		function onCellClick(elem) {
+
+			let text = getCellText(elem.id);
+			console.log(text);
+
+			let num = parseInt(text);
+			num++;
+			setCellOwnerAndText(elem.id, "red", ""+num);
+
+			let text1 = getCellText(elem.id);
+			console.log(text1);
+
+			let color = getCellOwnerColor(elem.id);
+			console.log(color);
+
+		}
+
+		function setCellOwnerAndText(cellID, owner_color, text) {
+			let cell = document.getElementById(cellID);
+			if (cell) {
+				cell.style.backgroundColor = owner_color;
+				let textElem = cell.childNodes[1];
+				textElem.innerHTML = text;
+			}
+		}
+
+		function getCellOwnerColor(cellID) {
+
+			let cell = document.getElementById(cellID);
+			if (cell) {
+				return cell.style.backgroundColor;
+			}
+
+		}
+
+		function getCellText(cellID) {
+
+			let cell = document.getElementById(cellID);
+			if (cell) {
+				// console.log(cell.childNodes);
+				let textElem = cell.childNodes[1];
+				return textElem.innerHTML;
+			}
+
+		}
+
+	</script>
 </html>

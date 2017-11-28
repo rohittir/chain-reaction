@@ -38,7 +38,7 @@ module.exports = function(passport) {
     // by default, if there was no name, it would just be called 'local'
 
     passport.use(
-        'local-signup',
+        'signup',
         new LocalStrategy({
             // by default, local strategy uses username and password, we will override with email
             usernameField : 'username',
@@ -80,7 +80,7 @@ module.exports = function(passport) {
     // by default, if there was no name, it would just be called 'local'
 
     passport.use(
-        'local-login',
+        'login',
         new LocalStrategy({
             // by default, local strategy uses username and password, we will override with email
             usernameField : 'username',
@@ -104,4 +104,78 @@ module.exports = function(passport) {
             });
         })
     );
+
+
+    // CREATE NEW TABLE FOR COMPETITION
+
+    passport.use(
+        'create-table',
+        new LocalStrategy({
+            // by default, local strategy uses username and password, we will override with email
+            usernameField : 'username',
+            tablenameFiled : 'tablename',
+            passReqToCallback : true // allows us to pass back the entire request to the callback
+        },
+
+        function(req, username, tablename, done) { // callback with email and password from our form
+            connection.query("SELECT * FROM competition_table WHERE tablename = ?",[tablename], function(err, rows) {
+                if (err)
+                    return done(err);
+                if (rows.length) {
+                    return done(null, false, req.flash('createTableMessage', 'That tablename is already taken.'));
+                } else {
+                    var insertQuery = "INSERT INTO competition_table (tablename, username, status) values (?, ?, 1)";
+
+                    connection.query(insertQuery, [tablename, username], function(err, rows) {
+                        return done(null, rows.insertId);
+                    });
+                }
+            });
+        })
+    );
+
+
+    passport.use(
+        'join-table',
+        new LocalStrategy({
+            // by default, local strategy uses username and password, we will override with email
+            usernameField : 'username',
+            tablenameFiled : 'tablename',
+            passReqToCallback : true // allows us to pass back the entire request to the callback
+        },
+
+        function(req, username, tablename, done) { // callback with email and password from our form
+            connection.query("SELECT * FROM competition_table WHERE tablename = ? AND status = 1",[tablename], function(err, rows) {
+                if (err)
+                    return done(err);
+                if (0 >= rows.length) {
+                    return done(null, false, req.flash('joinTableMessage', 'Table doesnot exists.'));
+                } else {
+                    var insertQuery = "INSERT INTO competition_table (tablename, username, status) values (?, ?, 1)";
+
+                    connection.query(insertQuery, [tablename, username], function(err, rows) {
+                        return done(null, rows.insertId);
+                    });
+                }
+            });
+        })
+    );
+
 };
+
+/*
+
+USERS (username, password), key: username
+competition_table (tablename, status, startTime, interval), key: tablename
+table_users (tablename, username) key: tablename, username
+MOVES (tablename, username, move, index), key: tablename, username, move, index; foriegn key: tablename, username
+
+
+*/
+
+
+
+
+
+
+
