@@ -10,15 +10,26 @@ var morgan = require('morgan');
 var app = express();
 var port = 3010;
 
+// Passport
 var passport = require('passport');
 var flash    = require('connect-flash');
 
+// Secure HTTPS
 var https = require('https');
 var fs = require('fs');
 
+// DATABASE connection
+var mysql = require('mysql');
+var dbconfig = require('./config/database');
+var connection = mysql.createConnection(dbconfig.connection);
+// console.log(connection);
+
+connection.query('USE ' + dbconfig.database);
+
+
 // configuration
 // connect to the database
-require('./config/passport')(passport); // pass passport for configuration
+require('./config/passport')(passport, connection); // pass passport and sql connection for configuration
 
 // set up the express application
 app.use(morgan('dev')); // log every request to the console
@@ -28,6 +39,7 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 
+// Set view engine
 app.set('view engine', 'ejs'); // set up ejs for templating
 
 // required for passport
@@ -40,9 +52,14 @@ app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
 app.use(flash()); // use connect-flash for flash messages stored in session
 
+// Board database
+// var board = require('./app/board.js');
+// board.connection = this.connection;
+// console.log(this.board);
 
 // routes set up
-require('./app/routes.js')(app, passport); // load our routes and pass in our app and fully configured passport
+var routing = require('./app/routes')(app, passport); // load our routes and pass in our app and fully configured passport
+
 
 // ssl/tsl secure key and self-signed certificate generated using openssl
 var options = {
@@ -57,5 +74,7 @@ if (err) {
 	}
 	console.log(`server is listening on ${port}`)
 });
+
+
 
 
