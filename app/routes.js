@@ -45,7 +45,7 @@ module.exports = function(app, passport, board) {
 
 	// process the signup form
 	app.post('/signup', passport.authenticate('signup', {
-		successRedirect : '/table', // redirect to the secure profile section
+		successRedirect : '/board', // redirect to the secure profile section
 		failureRedirect : '/signup', // redirect back to the signup page if there is an error
 		failureFlash : true // allow flash messages
 	}));
@@ -73,6 +73,13 @@ module.exports = function(app, passport, board) {
 
 		var board = require('./board');
 
+		var gamePlay = require('./gameplay');
+
+		var userList = [1,2,3,1,2,3,1,2,3,1];
+		var movesList = ["12", "43", "56", "12", "43", "56", "12", "43", "56", "12"];
+
+		gamePlay.getCurrentBoardState(userList, movesList, 5, 7);
+
 		// console.log(board);
 
 		// var newBoard = board.createNewBoard("Board1");
@@ -80,7 +87,17 @@ module.exports = function(app, passport, board) {
 
 		// var player = board.joinBoardPlay("Board1", "testuser1");
 		// console.log(player);
-    });
+	});
+
+	app.post('/board', isLoggedIn, function(req, res) {
+
+		console.log(req.body);
+
+		res.setHeader('Content-Type', 'text/json');
+		res.writeHead(200);
+		res.end(req.body.toString());
+		// res.write("Sending data from server");
+	});
 };
 
 // route middleware to make sure

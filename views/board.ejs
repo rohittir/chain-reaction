@@ -8,6 +8,7 @@
 	<title>TABLE</title>
 	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
 	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	<style>
 		body { padding-top:80px; word-wrap:break-word; }
 	</style>
@@ -46,7 +47,7 @@
 				let col = `<div class="col-sm-1" style="padding: 0; margin:3px;" id="block-col` + (i+1) + `">`;
 
 				for (let j = 0; j < num_rows; j++) {
-					col = col + `<div id="` + (i+1) + `-` + (j+1) + `" style="text-align: center; width:100%; background-color: yellow; margin-bottom:3px; height: 100px"
+					col = col + `<div id="` + (i+1) + `` + (j+1) + `" style="text-align: center; width:100%; background-color: yellow; margin-bottom:3px; height: 100px"
 					onclick="onCellClick(this)" >
 					<span id="cellDigits" style="font-size:xx-large">0</span>
 					</div>`;
@@ -62,18 +63,24 @@
 
 		function onCellClick(elem) {
 
-			let text = getCellText(elem.id);
-			console.log(text);
+			$.post("/board", {'value': elem.id})
+				.done( function (data) {
+					console.log(data);
+					alert("success");
+				});
 
-			let num = parseInt(text);
-			num++;
-			setCellOwnerAndText(elem.id, "red", ""+num);
+			// let text = getCellText(elem.id);
+			// console.log(text);
 
-			let text1 = getCellText(elem.id);
-			console.log(text1);
+			// let num = parseInt(text);
+			// num++;
+			// setCellOwnerAndText(elem.id, "red", ""+num);
 
-			let color = getCellOwnerColor(elem.id);
-			console.log(color);
+			// let text1 = getCellText(elem.id);
+			// console.log(text1);
+
+			// let color = getCellOwnerColor(elem.id);
+			// console.log(color);
 
 		}
 
