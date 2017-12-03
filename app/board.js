@@ -223,6 +223,20 @@ module.exports = {
         return null
     },
 
+    getAllBoardsWaitingForPlayers: function (done) {
+        var command = "SELECT * FROM BOARD WHERE board_status = \"WAITING\"";
+
+        connection.query (command, function(err, rows) {
+            if (err) {
+                done(err, null);
+            }
+
+            if(rows && rows.length > 0) {
+                done(null, rows);
+            }
+        });
+    },
+
     getBoardId: function (board_name) {
 
         var command = "SELECT * FROM BOARD WHERE board_name = ?";

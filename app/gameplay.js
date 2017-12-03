@@ -93,7 +93,7 @@ module.exports = {
             board = this.addMove(userIndexList[i], movesList[i], board, rows, cols, false);
         }
 
-        console.log(board);
+        return board;
     }
 
 };

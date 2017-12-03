@@ -1,6 +1,9 @@
 // app/routes.js
 
 
+var boardObj = require('./board');
+var gamePlay = require('./gameplay');
+
 
 module.exports = function(app, passport, board) {
 
@@ -21,7 +24,7 @@ module.exports = function(app, passport, board) {
 
 	// process the login form
 	app.post('/login', passport.authenticate('login', {
-            successRedirect : '/board', // redirect to the secure profile section
+            successRedirect : '/launch', // redirect to the secure profile section
             failureRedirect : '/login', // redirect back to the signup page if there is an error
             failureFlash : true // allow flash messages
 		}),
@@ -45,7 +48,7 @@ module.exports = function(app, passport, board) {
 
 	// process the signup form
 	app.post('/signup', passport.authenticate('signup', {
-		successRedirect : '/board', // redirect to the secure profile section
+		successRedirect : '/launch', // redirect to the secure profile section
 		failureRedirect : '/signup', // redirect back to the signup page if there is an error
 		failureFlash : true // allow flash messages
 	}));
@@ -66,19 +69,51 @@ module.exports = function(app, passport, board) {
 	});
 
 
+	// After Login Launch Page
+	app.get('/launch', isLoggedIn, function(req, res) {
+			// console.log(req);
+			if (req.query && req.query.request) {
+				if (req.query.request == "ExistingGames") {
+
+					// Access the database for active games
+					boardObj.getAllBoardsWaitingForPlayers( function (err, data) {
+						console.log(data);
+						res.status(200).send(data);
+					});
+
+				}
+			} else {
+				res.render('launch.ejs', {
+				});
+			}
+	});
+
+	app.post('/launch', isLoggedIn, function(req, res) {
+
+		console.log(boardObj);
+		if (req.body && req.body.request == "CreateNewGame") {
+			if (req.body.gameTitle) {
+				if (null != boardObj.createNewBoard(req.body.gameTitle)) {
+					var userName = req.user.username;
+					console.log(req.user);
+					console.log(userName);
+					// boardObj.joinBoardPlay(req.body.gameTitle, userName);
+
+					res.status(200).send("Created a new Game...");
+				}
+
+			}
+		}
+
+	});
+
 	// GAME BOARD
     app.get('/board', isLoggedIn, function(req, res) {
         res.render('board.ejs', {
 		});
 
-		var board = require('./board');
 
-		var gamePlay = require('./gameplay');
 
-		var userList = [1,2,3,1,2,3,1,2,3,1];
-		var movesList = ["12", "43", "56", "12", "43", "56", "12", "43", "56", "12"];
-
-		gamePlay.getCurrentBoardState(userList, movesList, 5, 7);
 
 		// console.log(board);
 
@@ -93,9 +128,21 @@ module.exports = function(app, passport, board) {
 
 		console.log(req.body);
 
-		res.setHeader('Content-Type', 'text/json');
-		res.writeHead(200);
-		res.end(req.body.toString());
+		var userList = [1,2,3,1,2,3,1,2,3,1];
+		var movesList = ["12", "43", "56", "12", "43", "56", "12", "43", "56", "12"];
+
+		var boardState = gamePlay.getCurrentBoardState(userList, movesList, 5, 7);
+
+		var data = {};
+		data["rows"] = 5;
+		data["cols"] = 7;
+		data["boardData"] = boardState;
+		data["colorData"] = [{"userIndex": 1, "color": "red"}, {"userIndex": 2, "color": "black"}, {"userIndex": 3, "color": "green"}  ];
+
+		// res.setHeader('Content-Type', 'text/json');
+		// res.writeHead(200);
+		console.log(data);
+		res.status(200).send(data);
 		// res.write("Sending data from server");
 	});
 };

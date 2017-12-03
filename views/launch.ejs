@@ -1,0 +1,79 @@
+
+
+<!doctype html>
+<html>
+<head>
+	<title>WELCOME</title>
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<style>
+		body { padding-top:80px; word-wrap:break-word; }
+	</style>
+</head>
+<body>
+<div class="container">
+
+	<div class="row">
+        <div style="float: right"><a href="/logout" class="btn btn-danger"><span class="glyphicon glyphicon-off"></span> Logout</a></div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="input-group" style="margin-top: 20%">
+                    <input id="gameNameInputId" type="text" class="form-control" placeholder="Provide a name...">
+                    <span class="input-group-btn">
+                        <button class="btn btn-primary" type="button" onclick="createNewGame()">Start New Game</button>
+                    </span>
+                </div>
+                <br>
+                <label style="margin-left: 40%"><strong>-- OR --</strong></label>
+                <br>
+                <div style="margin-top: 5%">
+                    <button type="button" class="btn btn-primary btn-block">Join Existing Game</button>
+                </div>
+            </div>
+            <!-- <button type="button" class="btn btn-primary btn-block">Start New Game</button> -->
+        </div>
+	</div>
+
+
+
+
+</div>
+</body>
+
+<script>
+
+    // get all existing games
+
+    fetchExistingGames();
+
+    function fetchExistingGames() {
+
+        $.get("/launch", {'request': 'ExistingGames'})
+				.done( function (data) {
+                    console.log(data);
+                }
+            );
+    }
+
+    function createNewGame() {
+
+        var inpElement = document.getElementById("gameNameInputId");
+        if (inpElement) {
+            var gameName = inpElement.value;
+            if (gameName) {
+                $.post("/launch", {'request': 'CreateNewGame', 'gameTitle': gameName})
+                    .done( function (data) {
+                        console.log(data);
+                    }
+                );
+            }
+        }
+
+
+
+    }
+
+</script>
+
+</html>
