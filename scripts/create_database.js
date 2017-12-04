@@ -9,6 +9,11 @@ var connection = mysql.createConnection(dbconfig.connection);
 
 // connection.query('CREATE DATABASE ' + dbconfig.database);
 
+connection.query("DROP TABLE " + dbconfig.database +".PLAY_MOVE");
+connection.query("DROP TABLE " + dbconfig.database +".BOARD_PLAYERS");
+connection.query("DROP TABLE " + dbconfig.database +".BOARD");
+
+
 connection.query('\
 CREATE TABLE IF NOT EXISTS`' + dbconfig.database + '`.`' + dbconfig.users_table + '` ( \
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT, \
@@ -38,6 +43,8 @@ CREATE TABLE IF NOT EXISTS`' + dbconfig.database + '`.`BOARD_PLAYERS` ( \
     `points` INT UNSIGNED NOT NULL DEFAULT 0, \
     `colorid` VARCHAR(20) NOT NULL, \
     `user_seq` INT UNSIGNED NOT NULL DEFAULT 0, \
+    `isTurn` INT UNSIGNED NOT NULL DEFAULT 0, \
+    `isActive` INT UNSIGNED NOT NULL DEFAULT 1, \
         PRIMARY KEY (`board_id`, `username`), \
         FOREIGN KEY (`board_id`) REFERENCES BOARD(`board_id`), \
         FOREIGN KEY (`username`) REFERENCES users(`username`) \

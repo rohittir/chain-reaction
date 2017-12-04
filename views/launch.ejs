@@ -28,10 +28,11 @@
                 <label style="margin-left: 40%"><strong>-- OR --</strong></label>
                 <br>
                 <div style="margin-top: 5%">
-                    <button type="button" class="btn btn-primary btn-block">Join Existing Game</button>
+                    <h4>Join Existing Game</h4>
+                    <div id="existingGamesList"></div>
                 </div>
             </div>
-            <!-- <button type="button" class="btn btn-primary btn-block">Start New Game</button> -->
+
         </div>
 	</div>
 
@@ -50,10 +51,37 @@
     function fetchExistingGames() {
 
         $.get("/launch", {'request': 'ExistingGames'})
-				.done( function (data) {
-                    console.log(data);
+            .done( function (data, status) {
+                console.log(data);
+                console.log(status);
+                if (data) {
+                    var dom = document.getElementById("existingGamesList");
+                    var gamesList = ``;
+                    for (var i = 0; i < data.length; i++) {
+                        gamesList = gamesList + `<div><a style="cursor: pointer" onclick="onSelectGame(this)">`+data[i].board_name +`</a></div>`;
+                    }
+                    dom.innerHTML = gamesList;
                 }
-            );
+
+            })
+            .fail (function(data, status) {
+                console.log(data);
+                console.log(status);
+            });
+    }
+
+    function onSelectGame(data) {
+        console.log(data.innerHTML);
+
+        $.get("/launch", {'request': 'JoinExistingGame', 'gameTitle': data.innerHTML})
+            .done( function (data, status) {
+                console.log(data);
+                redirect("board");
+            })
+            .fail (function(data, status) {
+                console.log(data);
+            });
+
     }
 
     function createNewGame() {
@@ -65,14 +93,23 @@
                 $.post("/launch", {'request': 'CreateNewGame', 'gameTitle': gameName})
                     .done( function (data) {
                         console.log(data);
-                    }
-                );
+                        redirect("board");
+                    })
+                    .fail (function(data, status) {
+                        console.log(data);
+                    });
             }
         }
 
-
-
     }
+
+    function redirect(pageName) {
+			var loc = window.location.href;
+			var index = loc.lastIndexOf("/");
+            var loc1 = loc.slice(0, index);
+            console.log(loc1);
+			window.location.href = loc1 + "/" + pageName;
+		}
 
 </script>
 

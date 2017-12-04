@@ -16,16 +16,31 @@
 <body>
 <div class="container">
 
-
+	<div class="row">
+		<div style="float: right"><a href="/logout" class="btn btn-danger"><span class="glyphicon glyphicon-off"></span> Logout</a></div>
+	</div>
 
 	<div class="row">
-	<div><a href="/logout" class="btn btn-default btn-sm">Logout</a></div>
-	<br>
-	<button type="button" class="btn btn-default">Join Table</button>
+		<div class="col-md-4">
+			<button class="btn btn-primary btn-lg" type="button" onclick="startGame()">Start The Game!</button>
+		</div>
+		<div class="col-md-4">
+			<a href="/launch?request=forfeitGame" class="btn btn-danger btn-lg" type="button">Forfeit Game</a>
+		</div>
 	</div>
-	<br>
 
-	<div class="row" id="block-row">
+	<div class="row">
+		<div id="usersListDomId" class="col-md-8">
+
+		</div>
+	</div>
+
+
+	<div style="margin-top: 5%">
+		<h2 id ="boardName"></h2>
+	</div>
+
+	<div class="row" id="block-row" style="margin-top: 10%; padding-bottom: 50px">
 	</div>
 
 </div>
@@ -33,7 +48,79 @@
 
 <script type="text/javascript">
 
-		createTable(5, 7);
+
+		fetchCurrentGame();
+
+		function fetchCurrentGame() {
+
+			$.get("/board", {'request': 'currentPlayingGame'})
+				.done( function (data, status) {
+					console.log(data);
+					fillBoardWithData(data);
+					setUserListAndColors(data.userData);
+					$('#block-row').off('click');
+				})
+				.fail (function(data, status) {
+					console.log(data);
+					redirect("launch");
+				});
+		}
+
+		function fillBoardWithData(data) {
+			createTable(data.rows, data.cols);
+
+			for(var i = 0; i < data.rows; i++) {
+				for (var j = 0; j < data.cols; j++) {
+					var cellID = ""+(i+1)+""+(j+1);
+					var userIndex = getCellIdUserIndex(cellID, data.boardData);
+					var userColor = getUserColor(userIndex, data.userData);
+					var cellText = getCellIdText(cellID, data.boardData);
+
+					setCellOwnerAndText(cellID, userColor, cellText);
+				}
+			}
+		}
+
+
+		function startGame() {
+			$.get("/board", {'request': 'startGame'})
+				.done( function (data) {
+					if (data) {
+						console.log(data);
+						$('#block-row').on('click');
+					}
+				})
+				.fail (function (data) {
+					console.log("Some error on server");
+				});
+		}
+
+		function forfeitGame() {
+			if (confirm('Are you sure you want to forfeit the game? You will lose this game.')) {
+
+				$.get("/launch", {'request': 'forfeit'})
+				.done( function (data) {
+					if (data) {
+						console.log(data);
+						redirect("launch");
+					}
+				})
+				.fail (function (data) {
+					console.log("Some error on server");
+				});
+
+			} else {
+				// Do nothing!
+			}
+		}
+
+
+		function redirect(pageName) {
+			var loc = window.location.href;
+			var index = loc.lastIndexOf("/");
+			var loc1 = loc.slice(0, index);
+			window.location.href = loc1 + "/" + pageName;
+		}
 
 		function createTable(num_rows, num_cols) {
 
@@ -63,44 +150,36 @@
 
 		function onCellClick(elem) {
 
-			$.post("/board", {'value': elem.id})
+			$.post("/board", {'request': 'addMove', 'value': elem.id})
 				.done( function (data) {
 					if (data) {
 						console.log(data);
-
-						createTable(data.rows, data.cols);
-
-						for(var i = 0; i < data.rows; i++) {
-							for (var j = 0; j < data.cols; j++) {
-								var cellID = ""+(i+1)+""+(j+1);
-								var userIndex = getCellIdUserIndex(cellID, data.boardData);
-								var userColor = getUserColor(userIndex, data.colorData);
-								var cellText = getCellIdText(cellID, data.boardData);
-
-								setCellOwnerAndText(cellID, userColor, cellText);
-							}
-						}
+						fillBoardWithData(data);
+						$('#block-row').off('click');
+						setTimeout(checkForTurn, 2000);
 					}
-
 				})
 				.fail (function (data) {
 					console.log("Server Error: please check the input");
 				});
+		}
 
+		function checkForTurn() {
+			$.get("/board", {'request': 'isMyTurn'})
+				.done( function (data, status) {
+					console.log(data);
+					if (data == 1) {
+						$('#block-row').on('click');
 
-			// let text = getCellText(elem.id);
-			// console.log(text);
+						fetchCurrentGame();
 
-			// let num = parseInt(text);
-			// num++;
-			// setCellOwnerAndText(elem.id, "red", ""+num);
-
-			// let text1 = getCellText(elem.id);
-			// console.log(text1);
-
-			// let color = getCellOwnerColor(elem.id);
-			// console.log(color);
-
+					} else {
+						setTimeout(checkForTurn, 1000);
+					}
+				})
+				.fail (function(data, status) {
+					console.log(data);
+				});
 		}
 
 		function getCellIdText(cellID, boardData) {
@@ -143,6 +222,25 @@
 				let textElem = cell.childNodes[1];
 				textElem.innerHTML = text;
 			}
+		}
+
+		function setUserListAndColors(userData) {
+
+			if (!userData) {
+				return;
+			}
+
+			var domElement = document.getElementById("usersListDomId");
+			var usersInfo = '';
+			console.log(userData);
+
+			for (var i = 0; i < userData.length; i++) {
+				usersInfo = usersInfo + `<h4>` + userData[i].userName  +`</h4> <span style=\"margin-left:2em; background-color: `+
+				userData[i].color + `\"></span> <span <h4 style=\"margin-left:2em;\">` + userData[i].points + `</span><br>`;
+			}
+
+			domElement.innerHTML = usersInfo;
+
 		}
 
 		function getCellOwnerColor(cellID) {

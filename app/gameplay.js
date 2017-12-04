@@ -10,11 +10,15 @@ module.exports = {
 
         let state = boardState[move];
 
+        if (!state) {
+            return null;
+        }
+
         if (state && state.length == 2) {
 
             if (state[0] != 0 && !isBurst && userIndex !== state[0]) {
                 // Invalid move
-                return boardState;
+                return null;
             }
 
             if (isBurst == true) {
@@ -80,6 +84,8 @@ module.exports = {
 
     getCurrentBoardState: function (userIndexList, movesList, rows, cols) {
 
+        console.log("getCurrentBoardState");
+
         // create the emplty board
         let board = {};
         for (var i = 0; i < rows; i++) {
@@ -91,9 +97,35 @@ module.exports = {
 
         for (var i = 0; i < userIndexList.length; i++) {
             board = this.addMove(userIndexList[i], movesList[i], board, rows, cols, false);
+            if (!board) { // Invalid move
+                return null;
+            }
         }
 
+        console.log(board);
+
         return board;
+    },
+
+    getUserPoints(userId, boardState, rows, cols) {
+
+        var points = 0;
+
+        for (var i = 0; i < rows; i++) {
+            for (var j = 0; j < cols; j++) {
+                var key = ""+(i+1)+""+(j+1);
+                var state = boardState[key];
+                if (state && state.length == 2) {
+                    if (state[0] == userId) {
+                        points = points + 10;
+                    }
+                }
+            }
+        }
+
+
+        return points;
+
     }
 
 };
