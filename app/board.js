@@ -171,10 +171,13 @@ module.exports = {
     getAllMovesOfBoard: function (board_name, done) {
         var command = "SELECT * FROM (BOARD NATURAL JOIN PLAY_MOVE ) WHERE board_name = ? ORDER BY move_seq ASC";
 
+        // console.log(board_name);
         connection.query (command, [board_name], function(err, rows) {
             if (err) {
                 console.log(err); done(err, null);
             } else if(rows) {
+                // console.log("getAllMovesOfBoard");
+                // console.log(rows);
                 done(null, rows);
             }
         });
@@ -290,6 +293,19 @@ module.exports = {
         });
     },
 
+    getUsersCompletedBoards: function (userName, done) {
+        var command = "SELECT * FROM (BOARD NATURAL JOIN BOARD_PLAYERS) WHERE username = ? AND board_status = \"COMPLETED\"";
+
+        connection.query (command, [userName], function(err, rows) {
+            if (err) {
+                done (err, null);
+            } else {
+                done (null, rows);
+            }
+        });
+
+    },
+
     //
     // SET/CREATE METHODS
     //
@@ -363,16 +379,19 @@ module.exports = {
         });
     },
 
-    endBoardPlay: function (board_name, done) {
+    endBoardPlay: function (board_name, winnerName, done) {
 
         var _this = this;
-        var command = "UPDATE BOARD SET endTime = (SELECT NOW()) WHERE board_name = ?";
+        var command = "UPDATE BOARD SET endTime = (SELECT NOW()), winner = ? WHERE board_name = ?";
 
-        connection.query (command, [board_name], function(err, rows) {
+        connection.query (command, [winnerName, board_name], function(err, rows) {
             if (err) {
                 console.log(err); done(err, null);
             } else {
+                console.log("endBoardPlay");
+                console.log(rows);
                 _this.setBoardStatus(board_name, "COMPLETED", function (err1, data1) {
+                    console.log(data1);
                     if (!err1 && data1) {
                         done(null, rows);
                     } else {
@@ -674,6 +693,9 @@ module.exports = {
                             if (minMoves > rows[i].num_moves) {
                                 minMoves = rows[i].num_moves
                             }
+                        }
+                        if (rows.length <= 0) {
+                            minMoves = 0;
                         }
                         done (null, minMoves);
                     }

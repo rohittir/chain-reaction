@@ -24,7 +24,7 @@ module.exports = function(app, passport, board) {
 
 	// process the login form
 	app.post('/login', passport.authenticate('login', {
-            successRedirect : '/launch', // redirect to the secure profile section
+            successRedirect : '/launch', // redirect to the secure launch section
             failureRedirect : '/login', // redirect back to the signup page if there is an error
             failureFlash : true // allow flash messages
 		}),
@@ -48,7 +48,7 @@ module.exports = function(app, passport, board) {
 
 	// process the signup form
 	app.post('/signup', passport.authenticate('signup', {
-		successRedirect : '/launch', // redirect to the secure profile section
+		successRedirect : '/launch', // redirect to the secure launch section
 		failureRedirect : '/signup', // redirect back to the signup page if there is an error
 		failureFlash : true // allow flash messages
 	}));
@@ -57,9 +57,23 @@ module.exports = function(app, passport, board) {
 	// we will want this protected so you have to be logged in to visit
 	// we will use route middleware to verify this (the isLoggedIn function)
 	app.get('/profile', isLoggedIn, function(req, res) {
-		res.render('profile.ejs', {
-			user : req.user // get the user out of session and pass to template
-		});
+
+		if (req.query.request == "userGamesHistory") {
+			getUserGamePlayInfo (req.user.username, function(err, gameData) {
+				console.log(err);
+				if(!err) {
+					res.status(200).send(gameData);
+				} else {
+					res.status(500).send("Server error");
+				}
+			});
+		} else {
+			res.render('profile.ejs', {
+				username : req.user.username
+			});
+		}
+
+
 	});
 
 	// LOGOUT
@@ -107,35 +121,10 @@ module.exports = function(app, passport, board) {
 						res.status(500).send("Internal server error");
 					}
 				});
-			} else if (req.query.request == "forfeitGame") {
-				var userName = req.user.username;
-				boardObj.getCurrActiveBoardOfUser(userName, function (err, data) {
-					// console.log("getCurrActiveBoardOfUser");
-					// console.log(data);
-
-					if (err) {
-						// console.log(err);
-						res.status(401).send("Error: User is not active in any game");
-					} else {
-						if (data && data.length >= 1) {
-							var board_name = data[0].board_name;
-							boardObj.setUserInActive(userName, board_name, function (err1, data1) {
-								// console.log(err1);
-								// console.log(data1);
-								if (!err1) {
-									res.status(200).send("User forfeited...");
-									// res.render('launch.ejs', {
-									// });
-								} else {
-									res.status(401).send("Error: Server internal error");
-								}
-							});
-						}
-					}
-				});
 			}
 		} else {
 			res.render('launch.ejs', {
+				username : req.user.username
 			});
 		}
 	});
@@ -198,24 +187,23 @@ module.exports = function(app, passport, board) {
 										if (err2) {
 											res.status(500).send("Server Error: Internal error");
 										} else {
+											console.log("isGameFinished");
+											console.log(data2);
 											if (data2 == true) {
-												boardObj.endBoardPlay(board_name, function(err9, data9) {
+												if (!winner) {
+													winner = getWinnerFromPoints(data1.userData);
+												}
+												boardObj.endBoardPlay(board_name, winner, function(err9, data9) {
 													if (err9) {
 														res.status(500).send("Server Error: Internal error");
 													} else {
 														data1["gameFinished"] = true;
-
-														if (!winner) {
-															winner = getWinnerFromPoints(data1.userData);
-														}
-
 														for (var i = 0; i < data1.userData.length; i++) {
 															if (data1.userData[i].userName == winner) {
 																data1.userData[i].winner = true;
 																break;
 															}
 														}
-
 														res.status(200).send(data1);
 													}
 												});
@@ -286,6 +274,7 @@ module.exports = function(app, passport, board) {
 													res.status(500).send("Server Error: Internal error");
 													// console.log("Internal error while updating the next tuser's urn");
 												} else {
+													checkForActiveUserHavingTurnInput(board_name);
 													res.status(200).send("Game started...");
 												}
 											});
@@ -318,10 +307,42 @@ module.exports = function(app, passport, board) {
 						res.status(200).send(data);
 					}
 				});
+			} else if (req.query.request == "forfeitGame") {
+				var userName = req.user.username;
+				boardObj.getCurrActiveBoardOfUser(userName, function (err, data) {
+					// console.log("getCurrActiveBoardOfUser");
+					// console.log(data);
+
+					if (err) {
+						// console.log(err);
+						res.status(401).send("Error: User is not active in any game");
+					} else {
+						if (data && data.length >= 1) {
+							var board_name = data[0].board_name;
+							boardObj.setUserInActive(userName, board_name, function (err1, data1) {
+								// console.log(err1);
+								// console.log(data1);
+								if (!err1) {
+									boardObj.addMoveToBoard(userName, board_name, "forfeited", function(err2, data2){
+										if (err2) {
+											res.status(500).send("Error: Server internal error");
+										} else {
+											res.status(200).send("User forfeited...");
+										}
+									});
+
+								} else {
+									res.status(401).send("Error: Server internal error");
+								}
+							});
+						}
+					}
+				});
 			}
 
 		} else {
 			res.render('board.ejs', {
+				username : req.user.username
 			});
 		}
 	});
@@ -379,17 +400,15 @@ module.exports = function(app, passport, board) {
 																			res.status(500).send("Internal server error...");
 																		} else {
 																			if (data7 == true) {
+																				if (!winner) {
+																					winner = getWinnerFromPoints(data3.userData);
+																				}
 																				// End the game
-																				boardObj.endBoardPlay(board_name, function(err9, data9){
+																				boardObj.endBoardPlay(board_name, winner, function(err9, data9){
 																					if (err9) {
 																						res.status(500).send("Internal server error...");
 																					} else {
 																						data3["gameFinished"] = true;
-
-																						if (!winner) {
-																							winner = getWinnerFromPoints(data3.userData);
-																						}
-
 																						for (var i = 0; i < data3.userData.length; i++) {
 																							if (data3.userData[i].userName == winner) {
 																								data3.userData[i].winner = true;
@@ -402,6 +421,7 @@ module.exports = function(app, passport, board) {
 																				});
 
 																			} else {
+																				checkForActiveUserHavingTurnInput(board_name);
 																				res.status(200).send(data3);
 																			}
 																		}
@@ -483,6 +503,7 @@ function getAllBoardData(board_name, userID, move, done) {
 	retObject["cols"] = cols;
 	retObject["boardData"] = null;
 	retObject["userData"] = null;
+	retObject["gameFinished"] = null;
 
 	boardObj.getAllMovesOfBoard(board_name, function(err1, data1) {
 		if (!err1 && data1) {
@@ -676,6 +697,8 @@ function isGameFinished(boardName, boardState, cols, rows, done) {
 									if (err2) {
 										done (err2, null, null);
 									} else {
+										console.log("getActiveUsersOnBoard");
+										console.log(data2);
 										if (data2 && data2.length <= 1) {
 											done (null, true, data2[0].username);
 										} else {
@@ -693,8 +716,98 @@ function isGameFinished(boardName, boardState, cols, rows, done) {
 		}
 	});
 
+}
+
+var lastUserHavingTurn = null;
+var turnCheckTimeout = null;
+
+function checkForActiveUserHavingTurnInput(boardName) {
+
+	if (turnCheckTimeout) {
+		clearTimeout(turnCheckTimeout);
+	}
+
+	boardObj.getUserHavingTurn(boardName, function(err, data) {
+		if (err) {
+			// error
+			// done(err, null);
+		} else {
+			lastUserHavingTurn = data;
+			turnCheckTimeout = setTimeout(isSameActiveUser, 15000, boardName);
+			// done(null, data);
+		}
+	});
 
 
+}
+
+function isSameActiveUser(boardName) {
+
+	boardObj.getUserHavingTurn(boardName, function(err, data) {
+		if (err) {
+			//error
+			// done(err, null);
+		} else {
+			if (lastUserHavingTurn == data) {
+				boardObj.addMoveToBoard(lastUserHavingTurn, boardName, "Timeout", function(err1, data1) {
+					if (err1) {
+						// Error
+					} else {
+						boardObj.setNextUserTurn(boardName, function(err2, data2) {
+							if (err2) {
+								// Error
+							} else {
+								checkForActiveUserHavingTurnInput();
+							}
+						});
+					}
+				});
+			}
+		}
+	});
+}
+
+function getUserGamePlayInfo(username, done) {
+	boardObj.getUsersCompletedBoards(username, function(err, data) {
+		if (err) {
+			console.log(err);
+			done (err, null);
+		} else {
+			var gamesData = [];
+			var numBoardsprocessed = 0;
+			for (var i = 0; i < data.length; i++) {
+				var currData = data[i];
+
+				gamesData.push({"boardName": currData.board_name, "start": currData.startTime,
+				"end": currData.endTime, "color": currData.colorid, "forfeited": !currData.isActive, "winner": currData.winner, "moveSeq": null});
+
+				boardObj.getAllMovesOfBoard(currData.board_name, function(err1, data1) {
+					numBoardsprocessed++;
+					if (err1) {
+						done(err1, null);
+						console.log(err1);
+					} else {
+						var moveSeq = [];
+						for (var j = 0; j < data1.length; j++) {
+							moveSeq.push({"userName": data1[j].username, "moveCellId": data1[j].move_value});
+						}
+						for (var k = 0; k < gamesData.length; k++) {
+							if (data1.length > 0) {
+								if (gamesData[k].boardName == data1[0].board_name) {
+									gamesData[k].moveSeq = moveSeq;
+								}
+							}
+						}
+					}
+
+					if(numBoardsprocessed >=  gamesData.length) {
+						done(null, gamesData);
+					}
+
+				});
+			}
+		}
+	});
 }
 
 

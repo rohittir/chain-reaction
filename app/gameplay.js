@@ -84,7 +84,7 @@ module.exports = {
 
     getCurrentBoardState: function (userIndexList, movesList, rows, cols) {
 
-        console.log("getCurrentBoardState");
+        // console.log("getCurrentBoardState");
 
         // create the emplty board
         let board = {};
@@ -96,6 +96,10 @@ module.exports = {
         }
 
         for (var i = 0; i < userIndexList.length; i++) {
+            if (movesList[i] == "Timeout" || movesList[i] == "forfeited") {
+                continue;
+            }
+
             board = this.addMove(userIndexList[i], movesList[i], board, rows, cols, false);
             if (!board) { // Invalid move
                 return null;

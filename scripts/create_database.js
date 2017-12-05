@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS`' + dbconfig.database + '`.`BOARD` ( \
     `board_status` VARCHAR(10), \
     `startTime` DATETIME, \
     `endTime` DATETIME, \
+    `winner` VARCHAR(20) DEFAULT NULL, \
         PRIMARY KEY (`board_id`), \
     UNIQUE INDEX `id_UNIQUE` (`board_id` ASC), \
     UNIQUE INDEX `board_name_UNIQUE` (`board_name` ASC) \

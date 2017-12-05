@@ -19,6 +19,7 @@
 	<div class="row">
 		<div style="float: right">
 			<button class="btn btn-danger" type="button" onclick="forfeitGame()">Forfeit Game</button>
+			<a href="/profile" class="btn btn-info"><span class="glyphicon glyphicon-user"></span> <%= username %></a>
 			<a href="/logout" class="btn btn-danger"><span class="glyphicon glyphicon-off"></span> Logout</a>
 		</div>
 		<button class="btn btn-primary" type="button" onclick="refreshBoard()">Refresh</button>
@@ -32,6 +33,7 @@
 			<h4 id="activePlayersId"></h4>
 			<h4 id="boardStatusId"></h4>
 			<h4 id="myTurnID"></h4>
+			<h4 id="timerId"></h4>
 			<br>
 			<div>
 				<table class="table table-condensed">
@@ -64,6 +66,7 @@
 <script type="text/javascript">
 
 
+		var Timerinterval = null;
 		var bStatusTimer = null;
 		fetchCurrentGame();
 
@@ -102,6 +105,7 @@
 
 		function refreshBoard() {
 			fetchCurrentGame();
+			checkForTurn();
 		}
 
 		function fillBoardWithData(data) {
@@ -142,7 +146,7 @@
 				.done( function (data) {
 					if (data == 'WAITING') {
 						setBoardStatus("Waiting For Players...");
-						// setTimeout(fetchCurrentGame, 2000);
+						setTimeout(fetchCurrentGame, 2000);
 					} else if (data == "ACTIVE") {
 						setBoardStatus("Game In Progress...");
 						// clearInterval(bStatusTimer);
@@ -170,6 +174,7 @@
 					if (data) {
 						console.log(data);
 						$('#block-row').on('click');
+						checkForTurn();
 					}
 				})
 				.fail (function (error) {
@@ -189,7 +194,7 @@
 		function forfeitGame() {
 			if (confirm('Are you sure you want to forfeit the game? You will lose this game.')) {
 
-				$.get("/launch", {'request': 'forfeitGame'})
+				$.get("/board", {'request': 'forfeitGame'})
 				.done( function (data) {
 					if (data) {
 						console.log(data);
@@ -245,6 +250,11 @@
 
 		function onCellClick(elem) {
 
+			if (Timerinterval) {
+				clearInterval(Timerinterval);
+				Timerinterval = null;
+			}
+
 			$.post("/board", {'request': 'addMove', 'value': elem.id})
 				.done( function (data) {
 					if (data) {
@@ -266,16 +276,40 @@
 					console.log(data);
 					if (data == 1) {
 						$('#block-row').on('click');
-						// fetchCurrentGame();
+						fetchCurrentGame();
 						setTurnText("Your Move...");
+						if (!Timerinterval) {
+							startTurnTimer();
+						}
 					} else {
-						setTimeout(checkForTurn, 1000);
+						setTimeout(checkForTurn, 2000);
 						setTurnText("Wait for other player's move...");
 					}
 				})
 				.fail (function(data, status) {
 					console.log(data);
 				});
+		}
+
+		function startTurnTimer() {
+
+			if (Timerinterval) {
+				clearInterval(Timerinterval);
+				Timerinterval = null;
+			}
+
+			var sec = 15;
+			Timerinterval = setInterval(function() {
+				document.getElementById("timerId").innerHTML = "make Your Move Within: " + sec + " seconds";
+				sec--;
+				if (sec <= 0) {
+					checkForTurn();
+					if (Timerinterval) {
+						clearInterval(Timerinterval);
+						Timerinterval = null;
+					}
+				}
+			}, 1000 );
 		}
 
 		function setTurnText(msg) {

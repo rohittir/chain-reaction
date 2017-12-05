@@ -15,7 +15,11 @@
 <div class="container">
 
 	<div class="row">
-        <div style="float: right"><a href="/logout" class="btn btn-danger"><span class="glyphicon glyphicon-off"></span> Logout</a></div>
+        <div style="float: right">
+            <a href="/profile" class="btn btn-info"><span class="glyphicon glyphicon-user"></span> <%= username %></a>
+            <a href="/logout" class="btn btn-danger"><span class="glyphicon glyphicon-off"></span> Logout</a>
+        </div>
+        <button class="btn btn-primary" type="button" onclick="refreshPage()">Refresh</button>
         <div class="row">
             <div class="col-sm-6">
                 <div class="input-group" style="margin-top: 20%">
@@ -59,6 +63,11 @@
             console.log(data);
             console.log(status);
         });
+
+
+    function refreshPage() {
+        fetchExistingGames();
+    }
 
     function fetchExistingGames() {
 
