@@ -46,7 +46,19 @@
 
     // get all existing games
 
-    fetchExistingGames();
+    $.get("/launch", {'request': 'isContinueGame'})
+        .done( function (data, status) {
+            if (data == true) {
+               redirect("board");
+            } else {
+                fetchExistingGames();
+            }
+
+        })
+        .fail (function(data, status) {
+            console.log(data);
+            console.log(status);
+        });
 
     function fetchExistingGames() {
 

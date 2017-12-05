@@ -79,44 +79,53 @@ module.exports = function(app, passport, board) {
 					if (err) {
 						res.status(500).send("Error: Server invalid board error");
 					} else {
-						console.log(data);
+						// console.log(data);
 						res.status(200).send(data);
 					}
 				});
 			} else if (req.query.request == "JoinExistingGame" && req.query.gameTitle) {
 				// Access the database
 				var userName = req.user.username;
-				console.log(userName);
+				// console.log(userName);
 				boardObj.joinBoardPlay(req.query.gameTitle, userName, function (err, data) {
 					if (err) {
 						// res.status(500).send("Error: User already Joined");
 						// res.redirect('/board');
 						res.status(200).send("Joined the game successfully");
 					} else {
-						console.log(data);
+						// console.log(data);
 						res.status(200).send("Joined the game successfully");
 						// res.redirect('/board');
+					}
+				});
+			} else if (req.query.request == "isContinueGame") {
+				var userName = req.user.username;
+				boardObj.isUserPlayingOnBoard(userName, function(err, data) {
+					if (!err) {
+						res.status(200).send(data);
+					} else {
+						res.status(500).send("Internal server error");
 					}
 				});
 			} else if (req.query.request == "forfeitGame") {
 				var userName = req.user.username;
 				boardObj.getCurrActiveBoardOfUser(userName, function (err, data) {
-					console.log("getCurrActiveBoardOfUser");
-					console.log(data);
+					// console.log("getCurrActiveBoardOfUser");
+					// console.log(data);
 
 					if (err) {
-						console.log(err);
+						// console.log(err);
 						res.status(401).send("Error: User is not active in any game");
 					} else {
 						if (data && data.length >= 1) {
 							var board_name = data[0].board_name;
 							boardObj.setUserInActive(userName, board_name, function (err1, data1) {
-								console.log(err1);
-								console.log(data1);
-								if (data1 && !err1) {
-									// res.status(200).send("User forfeited...");
-									res.render('launch.ejs', {
-									});
+								// console.log(err1);
+								// console.log(data1);
+								if (!err1) {
+									res.status(200).send("User forfeited...");
+									// res.render('launch.ejs', {
+									// });
 								} else {
 									res.status(401).send("Error: Server internal error");
 								}
@@ -126,16 +135,7 @@ module.exports = function(app, passport, board) {
 				});
 			}
 		} else {
-			var userName = req.user.username;
-
-			boardObj.isUserPlayingOnBoard(userName, function(err, data) {
-				if (data == true) {
-					res.render('board.ejs', {
-					});
-				} else {
-					res.render('launch.ejs', {
-					});
-				}
+			res.render('launch.ejs', {
 			});
 		}
 	});
@@ -149,8 +149,8 @@ module.exports = function(app, passport, board) {
 						res.status(500).send("Server Error: Board already exists");
 					} else {
 						var userName = req.user.username;
-						console.log(req.user);
-						console.log(userName);
+						// console.log(req.user);
+						// console.log(userName);
 						boardObj.joinBoardPlay(req.body.gameTitle, userName, function (err1, data1) {
 							if (err1) {
 								res.status(500).send("Server Error: Board already exists");
@@ -177,22 +177,53 @@ module.exports = function(app, passport, board) {
 
 				var userName = req.user.username;
 
-				boardObj.getCurrActiveBoardOfUser(userName, function (err, data) {
+				boardObj.getWaitingOrActiveBoardOfUser(userName, function (err, data) {
 					if (err) {
-						console.log(err);
+						// console.log(err);
 						res.status(500).send("Server Error: User is not active in any game");
 						// res.redirect('/launch');
 					} else {
 						console.log(data);
 						if (data && data.length >= 1) {
 							var board_name = data[0].board_name;
-
 							getAllBoardData(board_name, null, null, function (err1, data1) {
+								console.log(err1);
+								console.log(data1);
 								if (err1) {
 									res.status(500).send("Server Error: Invalid board");
 								} else {
 									console.log(data1);
-									res.status(200).send(data1);
+									// check if the game has finished...
+									isGameFinished(board_name, data1.boardData, data1.cols, data1.rows, function (err2, data2, winner) {
+										if (err2) {
+											res.status(500).send("Server Error: Internal error");
+										} else {
+											if (data2 == true) {
+												boardObj.endBoardPlay(board_name, function(err9, data9) {
+													if (err9) {
+														res.status(500).send("Server Error: Internal error");
+													} else {
+														data1["gameFinished"] = true;
+
+														if (!winner) {
+															winner = getWinnerFromPoints(data1.userData);
+														}
+
+														for (var i = 0; i < data1.userData.length; i++) {
+															if (data1.userData[i].userName == winner) {
+																data1.userData[i].winner = true;
+																break;
+															}
+														}
+
+														res.status(200).send(data1);
+													}
+												});
+											} else {
+												res.status(200).send(data1);
+											}
+										}
+									});
 								}
 							});
 
@@ -203,7 +234,7 @@ module.exports = function(app, passport, board) {
 				var userName = req.user.username;
 				boardObj.getCurrActiveBoardOfUser(userName, function (err, data) {
 					if (err) {
-						console.log(err);
+						// console.log(err);
 						res.status(500).send("Server Error: User is not active in any game");
 						// res.redirect('/launch');
 					} else {
@@ -224,12 +255,12 @@ module.exports = function(app, passport, board) {
 			} else if (req.query.request == "startGame") {
 
 				var userName = req.user.username;
-				boardObj.getCurrActiveBoardOfUser(userName, function (err, data) {
-					console.log("getCurrActiveBoardOfUser");
-					console.log(data);
+				boardObj.getCurrWaitingBoardOfUser(userName, function (err, data) {
+					// console.log("getCurrActiveBoardOfUser");
+					// console.log(data);
 
 					if (err) {
-						console.log(err);
+						// console.log(err);
 						res.status(401).send("Error: User is not active in any game");
 					} else {
 
@@ -238,22 +269,22 @@ module.exports = function(app, passport, board) {
 
 							boardObj.getNumUsersOnBoard(board_name, function(err2, data2) {
 								if (data2 >= 2 && !err2) {
-									console.log("getNumUsersOnBoard");
-									console.log(data2);
+									// console.log("getNumUsersOnBoard");
+									// console.log(data2);
 
 									boardObj.startBoardPlay(board_name, function(err3, data3) {
 										if (!err3 && data3) {
-											console.log("startBoardPlay");
-											console.log(data3);
+											// console.log("startBoardPlay");
+											// console.log(data3);
 
 											// success
 											boardObj.setNextUserTurn(board_name, function (err5, data5) {
-												console.log("setNextUserTurn");
-												console.log(data5);
+												// console.log("setNextUserTurn");
+												// console.log(data5);
 
 												if (err5) {
 													res.status(500).send("Server Error: Internal error");
-													console.log("Internal error while updating the next tuser's urn");
+													// console.log("Internal error while updating the next tuser's urn");
 												} else {
 													res.status(200).send("Game started...");
 												}
@@ -276,6 +307,17 @@ module.exports = function(app, passport, board) {
 					}
 				});
 
+			} if (req.query.request == "boardStatus") {
+				var boardName = req.query.boardName;
+				var userName = req.user.username;
+
+				boardObj.getUserBoardStatus(boardName, userName, function(err, data) {
+					if (err) {
+						res.status(500).send("Internal server error");
+					} else {
+						res.status(200).send(data);
+					}
+				});
 			}
 
 		} else {
@@ -294,7 +336,7 @@ module.exports = function(app, passport, board) {
 
 				boardObj.getCurrActiveBoardOfUser(userName, function (err, data) {
 					if (err) {
-						console.log(err);
+						// console.log(err);
 						res.status(401).send("Error: User is not active in any game");
 					} else {
 						if (data && data.length >= 1) {
@@ -305,33 +347,65 @@ module.exports = function(app, passport, board) {
 								if (!err1 && data1 == true) {
 									boardObj.getUserSequence(userName, board_name, function(err2, data2) {
 										if (err2) {
-											console.log(err);
+											// console.log(err);
 											res.status(401).send("Error: User is not active in this board");
 										} else {
 											let userId = data2;
 
 											getAllBoardData(board_name, userId, moveValue, function (err3, data3 ) {
 												if (err3) {
-													res.status(500).send("Server Error: Invalid board");
+													res.status(500).send("Error: Invalid move...");
 												} else {
-													console.log(data3);
+													// console.log(data3);
 
 													// Add move to database
 													boardObj.addMoveToBoard(userName, board_name, moveValue, function(err4, data4) {
-														console.log("addMoveToBoard");
-														console.log(data4);
+														// console.log("addMoveToBoard");
+														// console.log(data4);
 
 														if (err4) {
 															res.status(500).send("Server Error: Internal error");
 														} else {
 															boardObj.setNextUserTurn(board_name, function (err5, data5) {
-																console.log("setNextUserTurn");
-																console.log(data5);
+																// console.log("setNextUserTurn");
+																// console.log(data5);
 
 																if (err5) {
 																	res.status(500).send("Server Error: Internal error");
 																} else {
-																	res.status(200).send(data3);
+																	// check if the game has finished...
+																	isGameFinished(board_name, data3.boardData, data3.cols, data3.rows, function (err7, data7, winner) {
+																		if (err7) {
+																			res.status(500).send("Internal server error...");
+																		} else {
+																			if (data7 == true) {
+																				// End the game
+																				boardObj.endBoardPlay(board_name, function(err9, data9){
+																					if (err9) {
+																						res.status(500).send("Internal server error...");
+																					} else {
+																						data3["gameFinished"] = true;
+
+																						if (!winner) {
+																							winner = getWinnerFromPoints(data3.userData);
+																						}
+
+																						for (var i = 0; i < data3.userData.length; i++) {
+																							if (data3.userData[i].userName == winner) {
+																								data3.userData[i].winner = true;
+																								break;
+																							}
+																						}
+
+																						res.status(200).send(data3);
+																					}
+																				});
+
+																			} else {
+																				res.status(200).send(data3);
+																			}
+																		}
+																	});
 																}
 															});
 														}
@@ -374,12 +448,37 @@ function isLoggedIn(req, res, next) {
 	res.redirect('/');
 }
 
+function getBoardStatus(boardName, userName, done) {
+	if (boardName && userName) {
+		boardObj.getUserBoardStatus(boardName, userName, function (err, data) {
+			if (err) {
+				done (err, null)
+			} else if (data) {
+				done (null, data);
+			}
+		});
+	}
+
+}
+
+function getUserTurnName(boardName, done) {
+	if (boardName) {
+		boardObj.getUserHavingTurn(boardName, function (err, data) {
+			if (err) {
+				done (err, null);
+			} else {
+				done (null, data);
+			}
+		});
+	}
+}
 
 function getAllBoardData(board_name, userID, move, done) {
 
 	var retObject = {};
 	var rows = 6;
 	var cols = 6;
+	retObject["boardName"] = board_name;
 	retObject["rows"] = rows;
 	retObject["cols"] = cols;
 	retObject["boardData"] = null;
@@ -387,8 +486,8 @@ function getAllBoardData(board_name, userID, move, done) {
 
 	boardObj.getAllMovesOfBoard(board_name, function(err1, data1) {
 		if (!err1 && data1) {
-			console.log("getAllMovesOfBoard");
-			console.log(data1);
+			// console.log("getAllMovesOfBoard");
+			// console.log(data1);
 
 			var movesList = [];
 			var userIdList = [];
@@ -399,13 +498,13 @@ function getAllBoardData(board_name, userID, move, done) {
 				boardObj.getUserSequence(data1[i].username, board_name, function(err2, data2) {
 					if (!err2 && data2) {
 
-						console.log("getUserSequence");
-						console.log(data2);
+						// console.log("getUserSequence");
+						// console.log(data2);
 
 						userIdList.push(data2);
-						console.log(userIdList);
-						console.log(i);
-						console.log(data1.length);
+						// console.log(userIdList);
+						// console.log(i);
+						// console.log(data1.length);
 
 						if (userIdList.length == data1.length) { // finished all elements
 
@@ -425,21 +524,28 @@ function getAllBoardData(board_name, userID, move, done) {
 							boardObj.getUsersOfBoard(board_name, function (err3, data3) {
 								if (!err3 && data3) {
 
-									console.log("getUsersOfBoard");
-									console.log(data3);
+									getUsersMovesCount(data3, board_name, function (err5, data5) {
+										// console.log(data5);
+										if (err5) {
+											done (err5, null);
+										} else {
+											var userdata = [];
+											for (var j = 0; j < data3.length; j++) {
+												userdata.push({
+													"userName": data3[j].username,
+													"userIndex": data3[j].user_seq,
+													"color": data3[j].colorid,
+													"points": gamePlay.getUserPoints(data3[j].user_seq, boardState, rows, cols),
+													"winner": false,
+													"numMoves": (50-data5[j])
+												});
+											}
+											retObject["userData"] = userdata;
 
-									var userdata = [];
-									for (var j = 0; j < data3.length; j++) {
-										userdata.push({"userName": data3[j].username,
-										"userIndex": data3[j].user_seq,
-										"color": data3[j].colorid ,
-										"points": gamePlay.getUserPoints(data3[j].user_seq),
-										"winner": false
-										});
-									}
-									retObject["userData"] = userdata;
+											done(null, retObject);
+										}
+									});
 
-									done(null, retObject);
 								} else {
 									done (err3, null);
 								}
@@ -454,7 +560,7 @@ function getAllBoardData(board_name, userID, move, done) {
 
 			if (data1.length <= 0) {
 
-				console.log("length");
+				// console.log("length");
 
 				// Add input
 				if (userID && move) {
@@ -472,16 +578,29 @@ function getAllBoardData(board_name, userID, move, done) {
 				boardObj.getUsersOfBoard(board_name, function (err3, data3) {
 					if (!err3 && data3) {
 
-						console.log("getUsersOfBoard");
-						console.log(data3);
+						// console.log("getUsersOfBoard");
+						// console.log(data3);
 
-						var userdata = [];
-						for (var j = 0; j < data3.length; j++) {
-							userdata.push({"userName": data3[j].username, "userIndex": data3[j].user_seq, "color": data3[j].colorid});
-						}
-						retObject["userData"] = userdata;
+						getUsersMovesCount(data3, board_name, function (err5, data5) {
+							if (err5) {
+								done (err5, null);
+							} else {
+								var userdata = [];
+								for (var j = 0; j < data3.length; j++) {
+									userdata.push({
+										"userName": data3[j].username,
+										"userIndex": data3[j].user_seq,
+										"color": data3[j].colorid,
+										"points": gamePlay.getUserPoints(data3[j].user_seq, boardState, rows, cols),
+										"winner": false,
+										"numMoves": (50-data5[j])
+									});
+								}
+								retObject["userData"] = userdata;
 
-						done(null, retObject);
+								done(null, retObject);
+							}
+						});
 					} else {
 						done(err3, null);
 					}
@@ -495,6 +614,86 @@ function getAllBoardData(board_name, userID, move, done) {
 			done (err1, null);
 		}
 	});
+
+}
+
+function getUsersMovesCount(usersList, boardName, done) {
+
+	var userMovesList = [];
+	for (var i = 0;i < usersList.length; i++) {
+		boardObj.getNumberOfMovesOfUser(boardName, usersList[i].username, function(err, data) {
+
+			if (err) {
+				done (err, null);
+			} else {
+				userMovesList.push(data);
+
+				if (userMovesList.length >= usersList.length) {
+					done (null, userMovesList);
+				}
+			}
+
+		});
+	}
+
+}
+
+function getWinnerFromPoints(userData) {
+	var maxPoints = 0;
+	var winner = "";
+	for (var i = 0; i < userData.length; i++) {
+		if (maxPoints < userData[i].points) {
+			maxPoints = userData[i].points;
+			winner = userData[i].userName;
+		}
+	}
+
+	return winner;
+}
+
+
+function isGameFinished(boardName, boardState, cols, rows, done) {
+
+	boardObj.getBoardStatus(boardName, function (error, dataset) {
+		if (error) {
+			done (error, null, null);
+		} else {
+			if (dataset == "ACTIVE") {
+				if (true == gamePlay.isBoardFullyOccupiedBySameUser(boardState, rows, cols)) {
+					var winner = gamePlay.getAnyOwnerOfCell(boardState, rows, cols);
+					done (null, true, winner)
+				} else {
+					boardObj.getMinNumMovesByAllUsersOnBoard(boardName, function(err, data) {
+						console.log("getMinNumMovesByAllUsersOnBoard");
+						console.log(data);
+						if (err) {
+							done (err, null, null);
+						} else {
+							if (data >= 50) {
+								done (null, true, null);
+							} else {
+								boardObj.getActiveUsersOnBoard(boardName, function (err2, data2) {
+									if (err2) {
+										done (err2, null, null);
+									} else {
+										if (data2 && data2.length <= 1) {
+											done (null, true, data2[0].username);
+										} else {
+											done (null, false, null);
+										}
+									}
+								});
+							}
+						}
+					});
+				}
+			} else {
+				done (null, false, null);
+			}
+		}
+	});
+
+
 
 }
 

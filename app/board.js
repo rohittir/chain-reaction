@@ -30,29 +30,55 @@ module.exports = {
 
     isUserPlayingOnBoard: function (username, done) {
 
-        var command = "SELECT * FROM (BOARD NATURAL JOIN BOARD_PLAYERS) WHERE username = ? AND board_status=\"ACTIVE\"";
+        var command = "SELECT * FROM (BOARD NATURAL JOIN BOARD_PLAYERS) WHERE username = ? AND board_status != \"COMPLETED\" AND isActive = 1";
 
         connection.query (command, [username], function(err, rows) {
             if (err) {
-                done(err, null);
+                console.log(err); done(err, null);
+            } else {
+                if (rows && rows.length > 0) {
+                    done(null, true);
+                } else {
+                    done (null, false);
+                }
             }
+        });
 
-            if(rows && rows.length > 0) {
-                done(null, true);
+    },
+
+    getWaitingOrActiveBoardOfUser: function (userName, done) {
+        var command = "SELECT * FROM (BOARD NATURAL JOIN BOARD_PLAYERS) WHERE username = ? AND board_status != \"COMPLETED\" AND isActive = 1";
+
+        connection.query (command, [userName], function(err, rows) {
+            if (err) {
+                console.log(err); done(err, null);
+            } else if(rows) {
+                done(null, rows);
             }
         });
 
     },
 
     getCurrActiveBoardOfUser: function (userName, done) {
-        var command = "SELECT * FROM (BOARD NATURAL JOIN BOARD_PLAYERS) WHERE username = ? AND board_status=\"ACTIVE\"";
+        var command = "SELECT * FROM (BOARD NATURAL JOIN BOARD_PLAYERS) WHERE username = ? AND board_status = \"ACTIVE\" AND isActive = 1";
 
         connection.query (command, [userName], function(err, rows) {
             if (err) {
-                done(err, null);
+                console.log(err); done(err, null);
+            } else if(rows) {
+                done(null, rows);
             }
+        });
 
-            if(rows && rows.length > 0) {
+    },
+
+    getCurrWaitingBoardOfUser: function (userName, done) {
+        var command = "SELECT * FROM (BOARD NATURAL JOIN BOARD_PLAYERS) WHERE username = ? AND board_status = \"WAITING\" AND isActive = 1";
+
+        connection.query (command, [userName], function(err, rows) {
+            if (err) {
+                console.log(err); done(err, null);
+            } else if(rows) {
                 done(null, rows);
             }
         });
@@ -64,10 +90,8 @@ module.exports = {
 
         connection.query (command, [board_name, username], function(err, rows) {
             if (err) {
-                done(err, null);
-            }
-
-            if(rows && rows.length > 0) {
+                console.log(err); done(err, null);
+            } else if(rows && rows.length > 0) {
                 done(null, rows[0].points);
             }
         });
@@ -79,10 +103,8 @@ module.exports = {
 
         connection.query (command, [board_name, username], function(err, rows) {
             if (err) {
-                done(err, null);
-            }
-
-            if(rows && rows.length) {
+                console.log(err); done(err, null);
+            } else if(rows && rows.length > 0) {
                 done(null, rows[0].colorid);
             }
         });
@@ -93,10 +115,8 @@ module.exports = {
 
         connection.query (command, [board_name, username], function(err, rows) {
             if (err) {
-                done(err, null);
-            }
-
-            if(rows && rows.length > 0) {
+                console.log(err); done(err, null);
+            } else if(rows && rows.length > 0) {
                 done(null, rows[0].user_seq);
             }
         });
@@ -107,10 +127,8 @@ module.exports = {
         var command = "SELECT * FROM BOARD WHERE board_name = ?";
         connection.query (command, [board_name], function(err, rows) {
             if (err) {
-                done(err, null);
-            }
-
-            if(rows && rows.length > 0) {
+                console.log(err); done(err, null);
+            } else if(rows && rows.length > 0) {
                 done(null, rows[0].startTime);
             }
         });
@@ -121,11 +139,20 @@ module.exports = {
         var command = "SELECT * FROM BOARD WHERE board_name = ?";
         connection.query (command, [board_name], function(err, rows) {
             if (err) {
-                done(err, null);
-            }
-
-            if(rows && rows.length > 0) {
+                console.log(err); done(err, null);
+            } else if(rows && rows.length > 0) {
                 done(null, rows[0].endTime);
+            }
+        });
+    },
+
+    getUserBoardStatus: function (board_name, userName, done) {
+        var command = "SELECT * FROM (BOARD NATURAL JOIN BOARD_PLAYERS) WHERE board_name = ? AND username = ?";
+        connection.query (command, [board_name, userName], function(err, rows) {
+            if (err) {
+                console.log(err); done(err, null);
+            } else if(rows && rows.length > 0) {
+                done(null, rows[0].board_status);
             }
         });
     },
@@ -134,11 +161,9 @@ module.exports = {
         var command = "SELECT * FROM BOARD WHERE board_name = ?";
         connection.query (command, [board_name], function(err, rows) {
             if (err) {
-                done(err, null);
-            }
-
-            if(rows && rows.length > 0) {
-                done(null, rows[0].status);
+                console.log(err); done(err, null);
+            } else if(rows && rows.length > 0) {
+                done(null, rows[0].board_status);
             }
         });
     },
@@ -148,10 +173,8 @@ module.exports = {
 
         connection.query (command, [board_name], function(err, rows) {
             if (err) {
-                done(err, null);
-            }
-
-            if(rows) {
+                console.log(err); done(err, null);
+            } else if(rows) {
                 done(null, rows);
             }
         });
@@ -163,12 +186,33 @@ module.exports = {
 
         connection.query (command, [board_name], function(err, rows) {
             if (err) {
-                done(err, null);
-            }
-
-            if(rows) {
+                console.log(err); done(err, null);
+            } else if(rows) {
                 done(null, rows.length);
             }
+        });
+    },
+
+    getNumberOfMovesOfUser: function(boardName, userName, done) {
+
+        var command = "SELECT * FROM BOARD WHERE board_name = ?";
+        connection.query (command, [boardName], function(err, rows) {
+
+            if (err) {
+                done (err, null);
+            } else if (rows && rows.length > 0) {
+                console.log(userName);
+                var command1 = "SELECT * FROM PLAY_MOVE WHERE board_id = ? AND username = ?";
+                connection.query (command1, [rows[0].board_id, userName], function(err1, rows1) {
+                    if (err1) {
+                        done(err1, null);
+                    } else if (rows1) {
+                        done (null, rows1.length);
+                    }
+
+                });
+            }
+
         });
     },
 
@@ -177,10 +221,8 @@ module.exports = {
 
         connection.query (command, [board_name], function(err, rows) {
             if (err) {
-                done(err, null);
-            }
-
-            if(rows && rows.length > 0) {
+                console.log(err); done(err, null);
+            } else if(rows && rows.length > 0) {
                 done(null, rows[rows.length-1].username);
             }
         });
@@ -192,10 +234,8 @@ module.exports = {
 
         connection.query (command, [board_name], function(err, rows) {
             if (err) {
-                done(err, null);
-            }
-
-            if(rows && rows.length > 0) {
+                console.log(err); done(err, null);
+            } else if(rows) {
                 done(null, rows);
             }
         });
@@ -206,10 +246,8 @@ module.exports = {
 
         connection.query (command, [board_name], function(err, rows) {
             if (err) {
-                done(err, null);
-            }
-
-            if(rows) {
+                console.log(err); done(err, null);
+            } else if(rows) {
                 done(null, rows.length);
             }
         });
@@ -220,10 +258,8 @@ module.exports = {
 
         connection.query (command, function(err, rows) {
             if (err) {
-                done(err, null);
-            }
-
-            if(rows && rows.length > 0) {
+                console.log(err); done(err, null);
+            } else if(rows) {
                 done(null, rows);
             }
         });
@@ -234,10 +270,8 @@ module.exports = {
 
         connection.query (command, function(err, rows) {
             if (err) {
-                done(err, null);
-            }
-
-            if(rows && rows.length > 0) {
+                console.log(err); done(err, null);
+            } else if(rows) {
                 done(null, rows);
             }
         });
@@ -249,10 +283,8 @@ module.exports = {
 
         connection.query (command, [board_name], function(err, rows) {
             if (err) {
-                done(err, null);
-            }
-
-            if(rows && rows.length > 0) {
+                console.log(err); done(err, null);
+            } else if(rows && rows.length > 0) {
                 done(null, rows[0].board_id);
             }
         });
@@ -268,7 +300,7 @@ module.exports = {
 
         connection.query (command, [board_name], function(err, rows) {
             if (err) {
-                done(err, null);
+                console.log(err); done(err, null);
             } else {
                 done(null, rows);
             }
@@ -277,11 +309,13 @@ module.exports = {
 
     joinBoardPlay: function (boardName, username, done) {
 
+        console.log("joinBoardPlay");
         var _this = this;
         this.getBoardId(boardName, function(err, data) {
             if (!err) {
                 var boardId = data;
                 _this.getNumUsersOnBoard(boardName, function(err1, data1) {
+                    console.log(data1);
                     if (!err1) {
                         var numUsers = data1;
                         var color = _this.getColor(numUsers+1);
@@ -292,6 +326,7 @@ module.exports = {
                             if (err3) {
                                 done(err3, null);
                             } else {
+                                console.log(rows);
                                 done(null, rows);
                             }
 
@@ -302,7 +337,7 @@ module.exports = {
 
                 });
             } else {
-                done(err, null);
+                console.log(err); done(err, null);
             }
 
         });
@@ -315,7 +350,7 @@ module.exports = {
 
         connection.query (command, [board_name], function(err, rows) {
             if (err) {
-                done(err, null);
+                console.log(err); done(err, null);
             } else {
                 _this.setBoardStatus(board_name, "ACTIVE", function (err1, data1) {
                     if (!err1 && data1) {
@@ -335,7 +370,7 @@ module.exports = {
 
         connection.query (command, [board_name], function(err, rows) {
             if (err) {
-                done(err, null);
+                console.log(err); done(err, null);
             } else {
                 _this.setBoardStatus(board_name, "COMPLETED", function (err1, data1) {
                     if (!err1 && data1) {
@@ -359,7 +394,7 @@ module.exports = {
 
         connection.query (command, [boardStatus, board_name], function(err, rows) {
             if (err) {
-                done(err, null);
+                console.log(err); done(err, null);
             } else {
                 done(null, rows);
             }
@@ -378,7 +413,7 @@ module.exports = {
                         var command = "INSERT INTO PLAY_MOVE (board_id, username, move_seq, move_value) VALUES (?, ?, ?, ?)";
                         connection.query (command, [boardId, username, numMoves+1, moveValue], function(err, rows) {
                             if (err) {
-                                done(err, null);
+                                console.log(err); done(err, null);
                             } else {
                                 done(null, rows);
                             }
@@ -407,7 +442,7 @@ module.exports = {
                 var command = "UPDATE BOARD_PLAYERS SET points = ? WHERE board_id = ? AND username = ?";
                 connection.query (command, [pointsVal, boardId, userName], function(err, rows) {
                     if (err) {
-                        done(err, null);
+                        console.log(err); done(err, null);
                     } else {
                         done(null, rows);
                     }
@@ -420,35 +455,44 @@ module.exports = {
 
     setNextUserTurn: function(boardName, done) {
 
-        var command = "SELECT * FROM (BOARD_PLAYERS JOIN BOARD) WHERE board_name = ?";
+        console.log("setNextUserTurn");
+        var command = "SELECT * FROM (BOARD NATURAL JOIN BOARD_PLAYERS) WHERE board_name = ?";
         connection.query (command, [boardName], function(err, rows) {
             console.log("Step 1");
             console.log(rows);
 
             if (err) {
-                done(err, null);
+                console.log(err); done(err, null);
             } else {
                 console.log("Step 2");
-                // console.log(rows);
+                console.log(rows);
 
+                var activeUserRows = [];
                 var lastTurnUserId = 0;
                 for (var i = 0; i < rows.length; i++) {
                     if (rows[i].isTurn == 1) {
                         lastTurnUserId = rows[i].user_seq;
                     }
+                    if (rows[i].isActive == 1) {
+                        activeUserRows.push(rows[i]);
+                    }
                 }
+
+                rows = activeUserRows;
+                console.log(activeUserRows);
+                console.log(rows);
+
                 console.log("Step 4");
                 console.log(lastTurnUserId);
 
                 var minUserIndex = 0;
                 var maxUserIndex = 0;
-                var nextUserIndex = 0;
+                var nextUserIndex = lastTurnUserId+1000;
 
                 for (var i = 0; i < rows.length; i++) {
                     if (i == 0) {
                         minUserIndex = rows[i].user_seq;
                         maxUserIndex = rows[i].user_seq;
-                        nextUserIndex = rows[i].user_seq;
                     } else {
                         if (minUserIndex > rows[i].user_seq) {
                             minUserIndex = rows[i].user_seq;
@@ -457,10 +501,9 @@ module.exports = {
                         if (maxUserIndex < rows[i].user_seq) {
                             maxUserIndex = rows[i].user_seq;
                         }
-
-                        if (lastTurnUserId < rows[i].user_seq && nextUserIndex > rows[i].user_seq) {
-                            nextUserIndex = rows[i].user_seq;
-                        }
+                    }
+                    if (nextUserIndex > rows[i].user_seq && rows[i].user_seq > lastTurnUserId) {
+                        nextUserIndex = rows[i].user_seq;
                     }
                 }
 
@@ -497,6 +540,7 @@ module.exports = {
                                     console.log(rows2);
 
                                     if (err2) {
+                                        console.log(err2);
                                         done(err2, null);
                                     } else {
                                         done(null, rows1);
@@ -516,11 +560,11 @@ module.exports = {
 
     isUserTurn: function(userName, boardName, done) {
 
-        var command = "SELECT * FROM (BOARD_PLAYERS JOIN BOARD) WHERE board_name = ? AND username = ?";
+        var command = "SELECT * FROM (BOARD NATURAL JOIN BOARD_PLAYERS) WHERE board_name = ? AND username = ?";
 
         connection.query (command, [boardName, userName], function(err, rows) {
             if (err) {
-                done(err, null);
+                console.log(err); done(err, null);
             } else {
                 if (rows && rows.length > 0) {
                     if (rows[0].isTurn == 1) {
@@ -536,11 +580,11 @@ module.exports = {
 
     isUserActive: function(userName, boardName, done) {
 
-        var command = "SELECT * FROM (BOARD_PLAYERS JOIN BOARD) WHERE board_name = ? AND username = ?";
+        var command = "SELECT * FROM (BOARD NATURAL JOIN BOARD_PLAYERS) WHERE board_name = ? AND username = ?";
 
         connection.query (command, [boardName, userName], function(err, rows) {
             if (err) {
-                done(err, null);
+                console.log(err); done(err, null);
             } else {
                 if (rows && rows.length > 0) {
                     if (rows[0].isActive == 1) {
@@ -556,11 +600,11 @@ module.exports = {
 
     setUserInActive: function(userName, boardName, done) {
 
-        var command = "SELECT * FROM (BOARD_PLAYERS JOIN BOARD) WHERE board_name = ? AND username = ?";
+        var command = "SELECT * FROM (BOARD NATURAL JOIN BOARD_PLAYERS) WHERE board_name = ? AND username = ?";
 
         connection.query (command, [boardName, userName], function(err, rows) {
             if (err) {
-                done(err, null);
+                console.log(err); done(err, null);
             } else {
                 if (rows && rows.length > 0) {
                     if (rows[0].isActive == 1) {
@@ -568,6 +612,7 @@ module.exports = {
 
                         connection.query (command1, [rows[0].board_id, userName], function(err1, rows1) {
                             if (err1) {
+                                console.log(err1);
                                 done(err1, null);
                             } else if (rows1) {
                                 done(null, rows1);
@@ -582,6 +627,65 @@ module.exports = {
         });
 
     },
+
+    getUserHavingTurn: function (boardName, done) {
+        var command = "SELECT * FROM (BOARD NATURAL JOIN BOARD_PLAYERS) WHERE board_name = ? AND isActive = 1";
+
+        connection.query (command, [boardName], function(err, rows) {
+
+            if (err) {
+                done (err, null);
+            } else if (rows && rows.length > 0) {
+                done (null, rows[0].username);
+            }
+
+        });
+    },
+
+    getActiveUsersOnBoard: function (boardName, done) {
+
+        var command = "SELECT * FROM (BOARD NATURAL JOIN BOARD_PLAYERS) WHERE board_name = ? AND isActive = 1";
+
+        connection.query (command, [boardName], function(err, rows) {
+            if (err) {
+                done (err, null);
+            } else if (rows) {
+                done (null, rows);
+            }
+        });
+    },
+
+    getMinNumMovesByAllUsersOnBoard: function(boardName, done) {
+
+        this.getBoardId(boardName, function(err1, data1) {
+            if (err1) {
+                done (err1, null);
+            } else {
+                var boardId = data1;
+                var command = "SELECT username, COUNT(*) as num_moves FROM (PLAY_MOVE NATURAL JOIN BOARD_PLAYERS) WHERE board_id = ? GROUP BY username";
+
+                connection.query (command, [boardId], function(err, rows) {
+                    if (err) {
+                        done (err, null);
+                    } else if (rows) {
+                        var minMoves = 10000;
+                        var user = null;
+                        for (var i = 0; i < rows.length; i++) {
+                            if (minMoves > rows[i].num_moves) {
+                                minMoves = rows[i].num_moves
+                            }
+                        }
+                        done (null, minMoves);
+                    }
+                });
+            }
+
+        });
+
+
+
+
+    }
 
 
 

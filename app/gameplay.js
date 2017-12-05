@@ -102,12 +102,12 @@ module.exports = {
             }
         }
 
-        console.log(board);
+        // console.log(board);
 
         return board;
     },
 
-    getUserPoints(userId, boardState, rows, cols) {
+    getUserPoints: function(userId, boardState, rows, cols) {
 
         var points = 0;
 
@@ -126,7 +126,47 @@ module.exports = {
 
         return points;
 
+    },
+
+    isBoardFullyOccupiedBySameUser: function(boardState, rows, cols) {
+
+        var cellOwner = null;
+        var isFinished = true;
+        for (var i = 0; i < rows; i++) {
+            for (var j = 0; j < cols; j++) {
+                var key = ""+(i+1)+""+(j+1);
+                var state = boardState[key];
+                if (state && state.length == 2) {
+                    if (!cellOwner && state[0] != 0) {
+                        cellOwner = state[0];
+                    } else {
+                        if (cellOwner != state[0]) {
+                            isFinished = false;
+                            return isFinished;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (cellOwner == "") {
+            return false;
+        }
+
+        return isFinished;
+
+    },
+
+    getAnyOwnerOfCell: function(boardState, rows, cols) {
+        key = "11";
+        var state = boardState[key];
+        if (state && state.length == 2) {
+            return state[0];
+        }
+
     }
+
+
 
 };
 
