@@ -80,11 +80,13 @@
 
 					console.log(data);
 					var winner  = getWinner(data.userData);
-					if (winner) {
+					if (winner || getBoardStatusFromDom() == "COMPLETED") {
 						// the game has finished
 						var user = document.getElementById("usernameId").innerHTML;
 						var msg = "";
-						if (user == winner) {
+						if (!winner) {
+							msg = "The Game is a Tie!";
+						} else if (user == winner) {
 							msg = "Congratulations!! You won the game...";
 						} else {
 							msg = "Sorry you lost the game. The winner is " + winner +". Try next time..."
@@ -176,6 +178,10 @@
 			if (domElm) {
 				domElm.innerHTML = status;
 			}
+		}
+
+		function getBoardStatusFromDom() {
+			return document.getElementById("boardStatusId").innerText;
 		}
 
 		function startGame() {

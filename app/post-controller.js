@@ -93,7 +93,7 @@ module.exports = {
                                                                             if (err9) {
                                                                                 res.status(500).send("Internal server error...");
                                                                             } else {
-                                                                                data3["gameFinished"] = true;
+                                                                                // data3["gameFinished"] = true;
                                                                                 for (var i = 0; i < data3.userData.length; i++) {
                                                                                     if (data3.userData[i].userName == winner) {
                                                                                         data3.userData[i].winner = true;

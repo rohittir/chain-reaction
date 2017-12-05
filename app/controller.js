@@ -89,6 +89,8 @@ module.exports = {
             if (!err) {
                 res.status(200).send(data);
             } else {
+                console.log(userName);
+                console.log(data);
                 res.status(500).send("Internal server error");
             }
         });
@@ -121,13 +123,18 @@ module.exports = {
                                     console.log(data2);
                                     if (data2 == true) {
                                         if (!winner) {
-                                            winner = utils.getWinnerFromPoints(data1.userData);
+                                            var winners = utils.getWinnerFromPoints(data1.userData);
+                                            if (winners.length > 1) {
+                                                winner = "Tie";
+                                            } else if (winners.length == 1){
+                                                winner = winners[0];
+                                            }
                                         }
                                         boardObj.endBoardPlay(board_name, winner, function(err9, data9) {
                                             if (err9) {
                                                 res.status(500).send("Server Error: Internal error");
                                             } else {
-                                                data1["gameFinished"] = true;
+                                                // data1["gameFinished"] = true;
                                                 for (var i = 0; i < data1.userData.length; i++) {
                                                     if (data1.userData[i].userName == winner) {
                                                         data1.userData[i].winner = true;
@@ -232,7 +239,7 @@ module.exports = {
 
     forfeitGameRequest: function(req, res) {
         var userName = req.user.username;
-        boardObj.getCurrActiveBoardOfUser(userName, function (err, data) {
+        boardObj.getWaitingOrActiveBoardOfUser(userName, function (err, data) {
             // console.log("getCurrActiveBoardOfUser");
             // console.log(data);
 
@@ -266,174 +273,3 @@ module.exports = {
 
 
 };
-
-
-function getBoardStatus(boardName, userName, done) {
-	if (boardName && userName) {
-		boardObj.getUserBoardStatus(boardName, userName, function (err, data) {
-			if (err) {
-				done (err, null)
-			} else if (data) {
-				done (null, data);
-			}
-		});
-	}
-
-}
-
-function getUserTurnName(boardName, done) {
-	if (boardName) {
-		boardObj.getUserHavingTurn(boardName, function (err, data) {
-			if (err) {
-				done (err, null);
-			} else {
-				done (null, data);
-			}
-		});
-	}
-}
-
-function getAllBoardData(board_name, userID, move, done) {
-
-	var retObject = {};
-	var rows = 6;
-	var cols = 6;
-	retObject["boardName"] = board_name;
-	retObject["rows"] = rows;
-	retObject["cols"] = cols;
-	retObject["boardData"] = null;
-	retObject["userData"] = null;
-	retObject["gameFinished"] = null;
-
-	boardObj.getAllMovesOfBoard(board_name, function(err1, data1) {
-		if (!err1 && data1) {
-			// console.log("getAllMovesOfBoard");
-			// console.log(data1);
-
-			var movesList = [];
-			var userIdList = [];
-			var boardState = null;
-			for (var i = 0; i < data1.length; i++) {
-				movesList.push(data1[i].move_value);
-				// userIdList.push(0);
-				boardObj.getUserSequence(data1[i].username, board_name, function(err2, data2) {
-					if (!err2 && data2) {
-
-						// console.log("getUserSequence");
-						// console.log(data2);
-
-						userIdList.push(data2);
-						// console.log(userIdList);
-						// console.log(i);
-						// console.log(data1.length);
-
-						if (userIdList.length == data1.length) { // finished all elements
-
-							if (move && userID) {
-								userIdList.push(userID);
-								movesList.push(move);
-							}
-
-							// Call the function for Board state
-							boardState = gamePlay.getCurrentBoardState(userIdList, movesList, rows, cols);
-							if (!boardState) {
-								done ("Invalid Move", null);
-								return;
-							}
-							retObject["boardData"] = boardState;
-
-							boardObj.getUsersOfBoard(board_name, function (err3, data3) {
-								if (!err3 && data3) {
-
-									utils.getUsersMovesCount(data3, board_name, function (err5, data5) {
-										// console.log(data5);
-										if (err5) {
-											done (err5, null);
-										} else {
-											var userdata = [];
-											for (var j = 0; j < data3.length; j++) {
-												userdata.push({
-													"userName": data3[j].username,
-													"userIndex": data3[j].user_seq,
-													"color": data3[j].colorid,
-													"points": gamePlay.getUserPoints(data3[j].user_seq, boardState, rows, cols),
-													"winner": false,
-													"numMoves": (50-data5[j])
-												});
-											}
-											retObject["userData"] = userdata;
-
-											done(null, retObject);
-										}
-									});
-
-								} else {
-									done (err3, null);
-								}
-
-							});
-						}
-					} else {
-						done(err2, null);
-					}
-				});
-			}
-
-			if (data1.length <= 0) {
-
-				// console.log("length");
-
-				// Add input
-				if (userID && move) {
-					userIdList.push(userID);
-					movesList.push(move);
-				}
-
-				boardState = gamePlay.getCurrentBoardState(userIdList, movesList, rows, cols);
-				if (!boardState) {
-					done ("Invalid Move", null);
-					return;
-				}
-
-				retObject["boardData"] = boardState;
-				boardObj.getUsersOfBoard(board_name, function (err3, data3) {
-					if (!err3 && data3) {
-
-						// console.log("getUsersOfBoard");
-						// console.log(data3);
-
-						utils.getUsersMovesCount(data3, board_name, function (err5, data5) {
-							if (err5) {
-								done (err5, null);
-							} else {
-								var userdata = [];
-								for (var j = 0; j < data3.length; j++) {
-									userdata.push({
-										"userName": data3[j].username,
-										"userIndex": data3[j].user_seq,
-										"color": data3[j].colorid,
-										"points": gamePlay.getUserPoints(data3[j].user_seq, boardState, rows, cols),
-										"winner": false,
-										"numMoves": (50-data5[j])
-									});
-								}
-								retObject["userData"] = userdata;
-
-								done(null, retObject);
-							}
-						});
-					} else {
-						done(err3, null);
-					}
-
-				});
-			}
-
-
-
-		} else {
-			done (err1, null);
-		}
-	});
-
-}

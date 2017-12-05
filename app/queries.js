@@ -373,7 +373,7 @@ module.exports = {
                     console.log(data1);
                     if (!err1) {
                         var numUsers = data1;
-                        var color = _this.getColor(numUsers+1);
+                        var color = _this.getColorForUserId(numUsers+1);
 
                         var command = "INSERT INTO BOARD_PLAYERS (board_id, username, colorid, user_seq) VALUES (?, ?, ?, ?)";
 

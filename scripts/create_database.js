@@ -12,7 +12,7 @@ var connection = mysql.createConnection(dbconfig.connection);
 connection.query("DROP TABLE " + dbconfig.database +".PLAY_MOVE");
 connection.query("DROP TABLE " + dbconfig.database +".BOARD_PLAYERS");
 connection.query("DROP TABLE " + dbconfig.database +".BOARD");
-connection.query("DROP TABLE " + dbconfig.database +".users");
+// connection.query("DROP TABLE " + dbconfig.database +".users");
 
 
 connection.query('\
