@@ -372,8 +372,9 @@
 			console.log(userData);
 
 			for (var i = 0; i < userData.length; i++) {
-				usersInfo = usersInfo + `<tr> <td>` + userData[i].userName + `</td><td>` + userData[i].color +
-					`</td><td>` + userData[i].points + `</td><td>` + userData[i].numMoves
+				usersInfo = usersInfo + `<tr> <td>` + userData[i].userName + `</td><td style="float: left;width: 20px;
+  					height: 20px;margin: 5px; border: 1px solid rgba(0, 0, 0, .2); background: ` +
+					userData[i].color + `"></td><td>` + userData[i].points + `</td><td>` + userData[i].numMoves
 						+ `</td><td>` + userData[i].winner + `</td></tr>`;
 			}
 

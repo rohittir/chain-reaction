@@ -23,6 +23,11 @@ module.exports = {
             case 2: return "green";
             case 3: return "red";
             case 4: return "black";
+            case 5: return "brown";
+            case 6: return "DarkSeaGreen";
+            case 7: return "DarkSalmon";
+            case 8: return "DeepPink";
+
         }
 
         return "white";
