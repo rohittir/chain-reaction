@@ -1,15 +1,21 @@
 
+/*
+*
+* SWE-681 programming project Fall-2017
+* Author: Rohit Tirmanwar, Rohitaksh Vanaparthy
+* File: app/queries.js
+*/
 
-// app/board.js
 
-// DATABASE connection
+
+// Setup mysql database connection
 var mysql = require('mysql');
 var dbconfig = require('../config/database');
 var connection = mysql.createConnection(dbconfig.connection);
-
 connection.query('USE ' + dbconfig.database);
 
-// Here, all the application interaction with databse is needed
+
+// The purpose of this file is to access the database from application logic
 
 module.exports = {
 
@@ -17,7 +23,7 @@ module.exports = {
     // GET METHODS
     //
 
-    getColor: function (seq) {
+    getColorForUserId: function (seq) {
         switch (seq) {
             case 1: return "blue";
             case 2: return "green";

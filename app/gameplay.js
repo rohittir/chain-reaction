@@ -1,11 +1,18 @@
 
 
+/*
+*
+* SWE-681 programming project Fall-2017
+* Author: Rohit Tirmanwar, Rohitaksh Vanaparthy
+* File: app/gameplay.js
+*/
 
-// Here, all the gameplay related logic
+// This file implements the algorithms required to run the game according to it's rules
 
 module.exports = {
 
 
+    // Function: Add move of a user...
     addMove: function (userIndex, move, boardState, numRows, numCols, isBurst) {
 
         let state = boardState[move];
@@ -82,6 +89,7 @@ module.exports = {
 
     },
 
+    // Get the state of board from provided moves list
     getCurrentBoardState: function (userIndexList, movesList, rows, cols) {
 
         // console.log("getCurrentBoardState");
@@ -111,6 +119,7 @@ module.exports = {
         return board;
     },
 
+    // Calculate the number of points that user have earned thourgh moves
     getUserPoints: function(userId, boardState, rows, cols) {
 
         var points = 0;
@@ -132,6 +141,7 @@ module.exports = {
 
     },
 
+    // Check if the board is occupied by only one user
     isBoardFullyOccupiedBySameUser: function(boardState, rows, cols) {
 
         var cellOwner = null;
@@ -161,6 +171,7 @@ module.exports = {
 
     },
 
+    // returns the user (owner) of the first cell id
     getAnyOwnerOfCell: function(boardState, rows, cols) {
         key = "11";
         var state = boardState[key];
