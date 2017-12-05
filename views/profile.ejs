@@ -23,10 +23,10 @@
 
 	<div class="row">
 		<div class="col-md-8">
-			<table class="table table-condensed">
+			<table class="table table-striped" style="cursor: pointer">
 				<thead>
 				<tr>
-					<th>Index</th>
+					<th>User</th>
 					<th>Title</th>
 					<th>Start Time</th>
 					<th>End Time</th>
@@ -41,7 +41,7 @@
 
 		<div class="col-md-4">
 			<h4 id="gameTitleid" ></h4>
-			<table class="table table-condensed">
+			<table class="table table-bordered">
 				<thead>
 				<tr>
 					<th>UserName</th>
@@ -66,8 +66,8 @@
         .done( function (data, status) {
             if (data) {
 				gameData = data;
-				displayGamesData(data);
-				if (data.length > 0) {
+				displayGamesData(gameData);
+				if (gameData.length > 0) {
 					onShowMoves(0);
 				}
             }
@@ -82,7 +82,7 @@
 
 		var content = '';
 		for (var i = 0; i < data.length; i++) {
-			content = content + `<tr onclick="onShowMoves(`+ i + `)" ><td>` + (i+1) + `</td><td>`+ data[i].boardName + `</td><td>` +
+			content = content + `<tr onclick="onShowMoves(`+ i + `)" ><td>` + data[i].user + `</td><td>`+ data[i].boardName + `</td><td>` +
 				data[i].start + `</td><td>` +  data[i].end +`</td><td>` + data[i].forfeited +  `</td><td>` + data[i].winner + `</td></tr>`;
 		}
 

@@ -59,14 +59,44 @@ module.exports = function(app, passport, board) {
 	app.get('/profile', isLoggedIn, function(req, res) {
 
 		if (req.query.request == "userGamesHistory") {
-			getUserGamePlayInfo (req.user.username, function(err, gameData) {
-				console.log(err);
-				if(!err) {
-					res.status(200).send(gameData);
+
+			// check the user role
+			boardObj.getUserRole(req.user.username, function(err, data) {
+				if (!err) {
+					boardObj.getAllUsers(function(err4, data4) {
+						if (err4) {
+							res.status(500).send("Server error...");
+						} else {
+							var usersList = [req.user.username];
+							var gameData = [];
+							if (data == "ADMIN") {
+								usersList = [];
+								for (var k = 0; k < data4.length; k++) {
+									usersList.push(data4[k].username);
+								}
+							}
+							var count = 0;
+							for(var i = 0; i < usersList.length; i++) {
+								getUserGamePlayInfo (usersList[i], function(err2, data2) {
+									count++
+
+									if(!err2) {
+										gameData = gameData.concat(data2);
+									}
+									if (count == usersList.length) {
+										res.status(200).send(gameData);
+									}
+								});
+							}
+						}
+					});
+
 				} else {
-					res.status(500).send("Server error");
+					res.status(401).send("Invalid user...");
 				}
 			});
+
+
 		} else {
 			res.render('profile.ejs', {
 				username : req.user.username
@@ -757,6 +787,19 @@ function isSameActiveUser(boardName) {
 							if (err2) {
 								// Error
 							} else {
+								boardObj.getNumLastConsecutiveTimeoutsOfUser(boardName, lastUserHavingTurn, function(err2, data2){
+									if (!err2) {
+										if (data2 >= 3) {
+											// forfeit the game for this user
+											boardObj.setUserInActive(lastUserHavingTurn, boardName, function (err3, data3) {
+												if (!err3) {
+													boardObj.addMoveToBoard(lastUserHavingTurn, boardName, "forfeited", function(err4, data4){
+													});
+												}
+											});
+										}
+									}
+								});
 								checkForActiveUserHavingTurnInput();
 							}
 						});
@@ -774,11 +817,14 @@ function getUserGamePlayInfo(username, done) {
 			done (err, null);
 		} else {
 			var gamesData = [];
+			if (data.length <= 0) {
+				done(null, gamesData);
+			}
 			var numBoardsprocessed = 0;
 			for (var i = 0; i < data.length; i++) {
 				var currData = data[i];
 
-				gamesData.push({"boardName": currData.board_name, "start": currData.startTime,
+				gamesData.push({"user": username, "boardName": currData.board_name, "start": currData.startTime,
 				"end": currData.endTime, "color": currData.colorid, "forfeited": !currData.isActive, "winner": currData.winner, "moveSeq": null});
 
 				boardObj.getAllMovesOfBoard(currData.board_name, function(err1, data1) {

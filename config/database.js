@@ -5,6 +5,5 @@ module.exports = {
         'user': 'root',
         'password': 'P@55word'
     },
-	'database': 'CHAIN_REACTION',
-    'users_table': 'users'
+	'database': 'CHAIN_REACTION'
 };

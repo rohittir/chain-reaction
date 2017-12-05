@@ -76,5 +76,12 @@ if (err) {
 });
 
 
+// Set the admin user
+var boardObj = require('./app/board');
+boardObj.setUserRole("admin", "ADMIN", function(err, data) {
+
+});
+
+
 
 

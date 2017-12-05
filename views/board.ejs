@@ -19,7 +19,7 @@
 	<div class="row">
 		<div style="float: right">
 			<button class="btn btn-danger" type="button" onclick="forfeitGame()">Forfeit Game</button>
-			<a href="/profile" class="btn btn-info"><span class="glyphicon glyphicon-user"></span> <%= username %></a>
+			<a href="/profile" class="btn btn-info"><span class="glyphicon glyphicon-user"></span><span id="usernameId"><%= username %></span> </a>
 			<a href="/logout" class="btn btn-danger"><span class="glyphicon glyphicon-off"></span> Logout</a>
 		</div>
 		<button class="btn btn-primary" type="button" onclick="refreshBoard()">Refresh</button>
@@ -53,7 +53,7 @@
 			<!-- <h4>Click on Start Button to start the game.</h4> -->
 			<button class="btn btn-primary" type="button" onclick="startGame()">Start The Game!</button>
 			<h4 style="background-color: red" id="errorMsgId"></h4>
-			<h4 style="background-color: green" id="finishedGameId"></h4>
+			<h4 style="background-color: Chartreuse" id="finishedGameId"></h4>
 		</div>
 	</div>
 
@@ -79,10 +79,20 @@
 					getCurrStatusOfBoard(data.boardName);
 
 					console.log(data);
-					if (data.gameFinished) {
-						console.log(data.gameFinished);
+					var winner  = getWinner(data.userData);
+					if (winner) {
 						// the game has finished
-						document.getElementById("finishedGameId").innerHTML = "The Game has been finished and the winner is " + getWinner();
+						var user = document.getElementById("usernameId").innerHTML;
+						var msg = "";
+						if (user == winner) {
+							msg = "Congratulations!! You won the game...";
+						} else {
+							msg = "Sorry you lost the game. The winner is " + winner +". Try next time..."
+						}
+						document.getElementById("finishedGameId").innerHTML = msg;
+						if (Timerinterval) {
+							clearInterval(Timerinterval);
+						}
 					}
 
 					// bStatusTimer = setInterval(function(){ getCurrStatusOfBoard(data.boardName) }, 5000);
@@ -100,7 +110,7 @@
 					return userData[i].userName;
 				}
 			}
-			return "";
+			return null;
 		}
 
 		function refreshBoard() {
@@ -145,13 +155,13 @@
 			$.get("/board", {'request': 'boardStatus', 'boardName': boardName})
 				.done( function (data) {
 					if (data == 'WAITING') {
-						setBoardStatus("Waiting For Players...");
+						setBoardStatus("Waiting for more players to join. You can start the game if at least 2 players have joined.");
 						setTimeout(fetchCurrentGame, 2000);
 					} else if (data == "ACTIVE") {
-						setBoardStatus("Game In Progress...");
+						setBoardStatus("Game started and in progress...");
 						// clearInterval(bStatusTimer);
 					} else if (data == "COMPLETED") {
-						setBoardStatus("Game Finished...");
+						setBoardStatus("Game finished...");
 					}
 
 				})
@@ -234,7 +244,7 @@
 				let col = `<div class="col-sm-1" style="padding: 0; margin:3px;" id="block-col` + (i+1) + `">`;
 
 				for (let j = 0; j < num_rows; j++) {
-					col = col + `<div id="` + (j+1) + `` + (i+1) + `" style="text-align: center; width:100%; background-color: yellow; margin-bottom:3px; height: 100px"
+					col = col + `<div id="` + (j+1) + `` + (i+1) + `" style="color:white; text-align: center; width:100%; background-color: DarkGray; margin-bottom:3px; height: 100px"
 					onclick="onCellClick(this)" >
 					<span id="cellDigits" style="font-size:xx-large">0</span>
 					</div>`;
@@ -300,7 +310,7 @@
 
 			var sec = 15;
 			Timerinterval = setInterval(function() {
-				document.getElementById("timerId").innerHTML = "make Your Move Within: " + sec + " seconds";
+				document.getElementById("timerId").innerHTML = "Make your move within: " + sec + " seconds";
 				sec--;
 				if (sec <= 0) {
 					checkForTurn();
@@ -349,7 +359,7 @@
 				}
 			}
 
-			return 'yellow';
+			return 'DarkGray';
 		}
 
 		function setCellOwnerAndText(cellID, owner_color, text) {

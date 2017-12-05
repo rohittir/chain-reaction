@@ -27,10 +27,9 @@ module.exports = {
             case 6: return "DarkSeaGreen";
             case 7: return "DarkSalmon";
             case 8: return "DeepPink";
-
         }
 
-        return "white";
+        return "DarkGray";
     },
 
     isUserPlayingOnBoard: function (username, done) {
@@ -216,6 +215,35 @@ module.exports = {
                         done(err1, null);
                     } else if (rows1) {
                         done (null, rows1.length);
+                    }
+
+                });
+            }
+
+        });
+    },
+
+    getNumLastConsecutiveTimeoutsOfUser: function(boardName, userName, done) {
+        var command = "SELECT * FROM BOARD WHERE board_name = ?";
+        connection.query (command, [boardName], function(err, rows) {
+
+            if (err) {
+                done (err, null);
+            } else if (rows && rows.length > 0) {
+                var command1 = "SELECT * FROM PLAY_MOVE WHERE board_id = ? AND username = ?";
+                connection.query (command1, [rows[0].board_id, userName], function(err1, rows1) {
+                    if (err1) {
+                        done(err1, null);
+                    } else if (rows1) {
+                        var count = 0;
+                        for (var i = rows1.length-1; i >= 0 ; i--) {
+                            if (rows1[i].move_value == "Timeout") {
+                                count++;
+                            } else {
+                                break;
+                            }
+                        }
+                        done (null, count);
                     }
 
                 });
@@ -708,15 +736,47 @@ module.exports = {
             }
 
         });
+    },
 
+    getUserRole: function(userName, done) {
+        var command = "SELECT * FROM users WHERE username = ?";
 
+        connection.query (command, [userName], function(err, rows) {
+            if (err) {
+                done (err, null);
+            } else if (rows && rows.length > 0) {
+                done (null, rows[0].role);
+            } else {
+                done ("User donesnot exists", null);
+            }
+        });
+    },
 
+    setUserRole: function(userName, role, done) {
+        var command = "UPDATE users SET role = ? WHERE username = ?";
 
-    }
+        connection.query (command, [role, userName], function(err, rows) {
+            if (err) {
+                done (err, null);
+            } else {
+                done (null, rows);
+            }
+        });
+    },
 
-
-
+    getAllUsers: function(done) {
+        var command = "SELECT * FROM users";
+        connection.query (command, function(err, rows) {
+            if (err) {
+                done (err, null);
+            } else {
+                done (null, rows);
+            }
+        });
+    },
 };
+
+
 
 
 
