@@ -70,18 +70,30 @@ module.exports = {
     processJoinExistingGameRequest: function (req, res) {
         // Access the database
         var userName = req.user.username;
-        // console.log(userName);
-        boardObj.joinBoardPlay(req.query.gameTitle, userName, function (err, data) {
-            if (err) {
-                // res.status(500).send("Error: User already Joined");
-                // res.redirect('/board');
-                res.status(200).send("Joined the game successfully");
+        // check the number of players already joined the game
+        boardObj.getNumUsersOnBoard(req.query.gameTitle, function(err1, data1) {
+            if (err1) {
+                console.log(err1);
+                res.status(500).send("Internal server error");
             } else {
-                // console.log(data);
-                res.status(200).send("Joined the game successfully");
-                // res.redirect('/board');
+                if (data1 < 8) {
+                    boardObj.joinBoardPlay(req.query.gameTitle, userName, function (err, data) {
+                        if (err) {
+                            // res.status(500).send("Error: User already Joined");
+                            // res.redirect('/board');
+                            res.status(200).send("Joined the game successfully");
+                        } else {
+                            // console.log(data);
+                            res.status(200).send("Joined the game successfully");
+                            // res.redirect('/board');
+                        }
+                    });
+                } else {
+                    res.status(401).send("Maximum 8 players limit to join the game is reached.");
+                }
             }
         });
+
     },
 
     checkIfUserIsCurrentlyPlayingGame: function (req, res)  {

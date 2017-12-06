@@ -29,11 +29,14 @@
 
 	<div class="row" style="margin-top: 5%">
 		<div class="col-md-6">
-			<h2 id ="boardNameId"></h2>
-			<h4 id="activePlayersId"></h4>
-			<h4 id="boardStatusId"></h4>
-			<h4 id="myTurnID"></h4>
-			<h4 id="timerId"></h4>
+			<div class="alert alert-info">
+				<h2 id ="boardNameId"></h2>
+				<h4 id="activePlayersId"></h4>
+				<h4 id="boardStatusId"></h4>
+				<h4 id="myTurnID"></h4>
+				<h4 id="timerId"></h4>
+			</div>
+
 			<br>
 			<div>
 				<table class="table table-condensed">
@@ -58,7 +61,7 @@
 	</div>
 
 	<div class="row" id="block-row" style="margin-top: 10%; padding-bottom: 50px">
-	</div>
+		</div>
 
 </div>
 </body>
@@ -194,7 +197,7 @@
 					}
 				})
 				.fail (function (error) {
-					showErrorMessage(error.responseText);
+					showErrorMessage(error);
 					console.log("Some error on server");
 				});
 		}
@@ -221,7 +224,7 @@
 					}
 				})
 				.fail (function (error) {
-					showErrorMessage(error.responseText);
+					showErrorMessage(error);
 					console.log("Some error on server");
 				});
 
@@ -281,7 +284,7 @@
 					}
 				})
 				.fail (function (error) {
-					showErrorMessage(error.responseText);
+					showErrorMessage(error);
 					console.log("Server Error: please check the input");
 				});
 		}

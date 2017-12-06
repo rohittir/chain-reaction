@@ -147,6 +147,7 @@ module.exports = function(app, passport, board) {
 
 				if (req.query.boardName && true == re.test(req.query.boardName)) {
 					var boardName = req.query.boardName;
+					var userName = req.user.username;
 					boardObj.getUserBoardStatus(boardName, userName, function(err, data) {
 						if (err) {
 							res.status(500).send("Internal server error");
