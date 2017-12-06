@@ -42,6 +42,13 @@ module.exports = function(passport, connection) {
             passReqToCallback : true // allows us to pass back the entire request to the callback
         },
         function(req, username, password, done) {
+
+            // check the conditions for username with regex
+            var re = RegExp('^[A-Za-z0-9_.]+$');
+            if (false == re.test(username)) {
+                return done(null, false, req.flash('signupMessage', 'That username is not valid.'));
+            }
+
             // find a user whose username is the same as the forms email
             // we are checking to see if the user trying to login already exists
             connection.query("SELECT * FROM users WHERE username = ?",[username], function(err, rows) {
@@ -82,7 +89,13 @@ module.exports = function(passport, connection) {
             passReqToCallback : true // allows us to pass back the entire request to the callback
         },
         function(req, username, password, done) { // callback with username and password from our form
-            connection.query("SELECT * FROM users WHERE username = ?",[username], function(err, rows){
+             // check the conditions for username with regex
+             var re = RegExp('^[A-Za-z0-9_.]+$');
+             if (false == re.test(username)) {
+                 return done(null, false, req.flash('signupMessage', 'No user found.'));
+             }
+
+            connection.query("SELECT * FROM users WHERE username = ?",[username], function(err, rows) {
                 if (err)
                     return done(err);
                 if (!rows.length) {

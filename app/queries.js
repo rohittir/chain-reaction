@@ -308,7 +308,7 @@ module.exports = {
     },
 
     getAllBoardsWaitingForPlayers: function (done) {
-        var command = "SELECT * FROM BOARD WHERE board_status = \"WAITING\"";
+        var command = "SELECT board_name FROM BOARD WHERE board_status = \"WAITING\"";
 
         connection.query (command, function(err, rows) {
             if (err) {

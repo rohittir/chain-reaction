@@ -194,7 +194,7 @@
 					}
 				})
 				.fail (function (error) {
-					showErrorMessage(error);
+					showErrorMessage(error.responseText);
 					console.log("Some error on server");
 				});
 		}
@@ -221,7 +221,7 @@
 					}
 				})
 				.fail (function (error) {
-					showErrorMessage(error);
+					showErrorMessage(error.responseText);
 					console.log("Some error on server");
 				});
 
@@ -281,7 +281,7 @@
 					}
 				})
 				.fail (function (error) {
-					showErrorMessage(error);
+					showErrorMessage(error.responseText);
 					console.log("Server Error: please check the input");
 				});
 		}

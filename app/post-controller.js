@@ -124,7 +124,7 @@ module.exports = {
                             });
 
                         } else {
-                            res.status(401).send("Error: It is not this user's turn...");
+                            res.status(401).send("Error: It is not your turn...");
                         }
                     });
 

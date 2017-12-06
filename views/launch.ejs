@@ -20,14 +20,16 @@
             <a href="/logout" class="btn btn-danger"><span class="glyphicon glyphicon-off"></span> Logout</a>
         </div>
         <button class="btn btn-primary" type="button" onclick="refreshPage()">Refresh</button>
-        <div class="row">
+        <div class="row" style="margin-top: 10%">
             <div class="col-sm-6">
-                <div class="input-group" style="margin-top: 20%">
+                <label>Name of the game must not contain any special characters other than '_' and '-'. All numbers and alphabates are allowed. </label>
+                <div class="input-group">
                     <input id="gameNameInputId" type="text" class="form-control" placeholder="Provide a name...">
                     <span class="input-group-btn">
                         <button class="btn btn-primary" type="button" onclick="createNewGame()">Start New Game</button>
                     </span>
                 </div>
+                <h4 style="background-color: red" id="errMsg"></h4>
                 <br>
                 <label style="margin-left: 40%"><strong>-- OR --</strong></label>
                 <br>
@@ -60,7 +62,7 @@
 
         })
         .fail (function(data, status) {
-            console.log(data);
+            console.log(data.responseText);
             console.log(status);
         });
 
@@ -74,19 +76,18 @@
         $.get("/launch", {'request': 'ExistingGames'})
             .done( function (data, status) {
                 console.log(data);
-                console.log(status);
-                if (data) {
+                if (data && data.games) {
                     var dom = document.getElementById("existingGamesList");
                     var gamesList = ``;
-                    for (var i = 0; i < data.length; i++) {
-                        gamesList = gamesList + `<div><a style="cursor: pointer" onclick="onSelectGame(this)">`+data[i].board_name +`</a></div>`;
+                    for (var i = 0; i < data.games.length; i++) {
+                        gamesList = gamesList + `<div><a style="cursor: pointer" onclick="onSelectGame(this)">`+data.games[i].board_name +`</a></div>`;
                     }
                     dom.innerHTML = gamesList;
                 }
 
             })
             .fail (function(data, status) {
-                console.log(data);
+                console.log(data.responseText);
                 console.log(status);
             });
     }
@@ -100,7 +101,7 @@
                 redirect("board");
             })
             .fail (function(data, status) {
-                console.log(data);
+                console.log(data.responseText);
             });
 
     }
@@ -117,7 +118,8 @@
                         redirect("board");
                     })
                     .fail (function(data, status) {
-                        console.log(data);
+                        console.log(data.responseText);
+                        document.getElementById("errMsg").innerHTML = data.responseText;
                     });
             }
         }

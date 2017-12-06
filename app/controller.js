@@ -61,7 +61,8 @@ module.exports = {
                 res.status(500).send("Error: Server invalid board error");
             } else {
                 // console.log(data);
-                res.status(200).send(data);
+                var retData = {"games": data};
+                res.status(200).send(retData);
             }
         });
     },

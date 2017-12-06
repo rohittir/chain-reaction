@@ -91,7 +91,14 @@ module.exports = function(app, passport, board) {
 				controller.processExistingGamesRequest(req, res);
 
 			} else if (req.query.request == "JoinExistingGame" && req.query.gameTitle) {
-				controller.processJoinExistingGameRequest(req, res);
+
+				// Add regex for board/game name
+				var re = RegExp('^[A-Za-z0-9-_]*$');
+				if (req.query.gameTitle != "" && true == re.test(req.query.gameTitle)) {
+					controller.processJoinExistingGameRequest(req, res);
+				} else {
+					res.status(401).send("Invalid Game Title..");
+				}
 
 			} else if (req.query.request == "isContinueGame") {
 				controller.checkIfUserIsCurrentlyPlayingGame(req, res);
@@ -105,11 +112,15 @@ module.exports = function(app, passport, board) {
 
 	app.post('/launch', isLoggedIn, function(req, res) {
 		if (req.body && req.body.request == "CreateNewGame") {
-			if (req.body.gameTitle) {
-				// Add regex call
 
+			// Add regex for board/game name
+			var re = RegExp('^[A-Za-z0-9-_]+$');
+			if (req.body.gameTitle && true == re.test(req.body.gameTitle)) {
 				postController.processCreateNewGameRequest(req, res);
+			} else {
+				res.status(401).send("Invalid Game Title");
 			}
+
 		}
 
 	});
@@ -131,18 +142,21 @@ module.exports = function(app, passport, board) {
 				controller.processStartGameRequest(req, res);
 
 			} if (req.query.request == "boardStatus") {
+				// Add regex for board/game name
+				var re = RegExp('^[A-Za-z0-9-_]+$');
 
-				var boardName = req.query.boardName;
-				var userName = req.user.username;
-				// Add regex for board name
-
-				boardObj.getUserBoardStatus(boardName, userName, function(err, data) {
-					if (err) {
-						res.status(500).send("Internal server error");
-					} else {
-						res.status(200).send(data);
-					}
-				});
+				if (req.query.boardName && true == re.test(req.query.boardName)) {
+					var boardName = req.query.boardName;
+					boardObj.getUserBoardStatus(boardName, userName, function(err, data) {
+						if (err) {
+							res.status(500).send("Internal server error");
+						} else {
+							res.status(200).send(data);
+						}
+					});
+				} else {
+					res.status(401).send("Invalid Board Name..");
+				}
 
 			} else if (req.query.request == "forfeitGame") {
 				controller.forfeitGameRequest(req, res);
@@ -160,8 +174,15 @@ module.exports = function(app, passport, board) {
 		if (req.body) {
 
 			if (req.body.request == "addMove") {
-				// add regex for move value
-				postController.processAddMoveRequest(req, res);
+				// add regex for move value. Value showld have only 2 digits each between 1-6
+				var re = RegExp('^[1-6][1-6]$');
+				var moveValue = req.body.value;
+				if (true == re.test(""+moveValue)) {
+					postController.processAddMoveRequest(req, res);
+				} else {
+					console.log("Invalid move input value");
+					res.status(401).send("Invalid Move");
+				}
 			}
 		}
 

@@ -165,7 +165,9 @@ module.exports = {
                                             }
                                         }
                                     });
-                                    _this.checkForActiveUserHavingTurnInput();
+                                    if(typeof _this.checkForActiveUserHavingTurnInput === "function") {
+                                        _this.checkForActiveUserHavingTurnInput();
+                                    }
                                 }
                             });
                         }
