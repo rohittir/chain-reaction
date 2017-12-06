@@ -17,6 +17,7 @@ module.exports = {
 
     processUserProfileRequest :function(req, res) {
         // check the user role
+        // The username is already authenticated by the middleware
         boardObj.getUserRole(req.user.username, function(err, data) {
             if (!err) {
                 boardObj.getAllUsers(function(err4, data4) {
@@ -69,6 +70,7 @@ module.exports = {
 
     processJoinExistingGameRequest: function (req, res) {
         // Access the database
+        // The username is already authenticated by the middleware
         var userName = req.user.username;
         // check the number of players already joined the game
         boardObj.getNumUsersOnBoard(req.query.gameTitle, function(err1, data1) {
@@ -97,6 +99,7 @@ module.exports = {
     },
 
     checkIfUserIsCurrentlyPlayingGame: function (req, res)  {
+        // The username is already authenticated by the middleware
         var userName = req.user.username;
         boardObj.isUserPlayingOnBoard(userName, function(err, data) {
             if (!err) {
@@ -110,6 +113,7 @@ module.exports = {
     },
 
     processUserPlayingGameRequest: function(req, res) {
+        // The username is already authenticated by the middleware
         var userName = req.user.username;
         boardObj.getWaitingOrActiveBoardOfUser(userName, function (err, data) {
             if (err) {
@@ -171,6 +175,7 @@ module.exports = {
     },
 
     processIsMyTurnRequest: function(req, res) {
+        // The username is already authenticated by the middleware
         var userName = req.user.username;
         boardObj.getCurrActiveBoardOfUser(userName, function (err, data) {
             if (err) {
@@ -195,6 +200,7 @@ module.exports = {
     },
 
     processStartGameRequest: function(req, res) {
+        // The username is already authenticated by the middleware
         var userName = req.user.username;
         boardObj.getCurrWaitingBoardOfUser(userName, function (err, data) {
             // console.log("getCurrActiveBoardOfUser");
@@ -251,7 +257,7 @@ module.exports = {
     },
 
     forfeitGameRequest: function(req, res) {
-        var userName = req.user.username;
+        var userName = req.user.username; // The username is already authenticated by the middleware
         boardObj.getWaitingOrActiveBoardOfUser(userName, function (err, data) {
             // console.log("getCurrActiveBoardOfUser");
             // console.log(data);

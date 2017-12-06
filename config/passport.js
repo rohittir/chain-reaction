@@ -43,6 +43,10 @@ module.exports = function(passport, connection) {
         },
         function(req, username, password, done) {
 
+            // check the length of username
+            if (username.length < 3 || username.length > 8) {
+                return done(null, false, req.flash('signupMessage', 'That username is not valid.'));
+            }
             // check the conditions for username with regex
             var re = RegExp('^[A-Za-z0-9_.]+$');
             if (false == re.test(username)) {
@@ -89,10 +93,14 @@ module.exports = function(passport, connection) {
             passReqToCallback : true // allows us to pass back the entire request to the callback
         },
         function(req, username, password, done) { // callback with username and password from our form
+            // check the length of username
+            if (username.length < 3 || username.length > 8) {
+                return done(null, false, req.flash('loginMessage', 'Invalid user.'));
+            }
              // check the conditions for username with regex
              var re = RegExp('^[A-Za-z0-9_.]+$');
              if (false == re.test(username)) {
-                 return done(null, false, req.flash('signupMessage', 'No user found.'));
+                 return done(null, false, req.flash('loginMessage', 'No user found.'));
              }
 
             connection.query("SELECT * FROM users WHERE username = ?",[username], function(err, rows) {

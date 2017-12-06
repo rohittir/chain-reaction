@@ -22,6 +22,7 @@ module.exports = {
             if (err) {
                 res.status(500).send("Server Error: Board already exists");
             } else {
+                // The username is already authenticated by the middleware
                 var userName = req.user.username;
                 // console.log(req.user);
                 // console.log(userName);
@@ -38,8 +39,8 @@ module.exports = {
     },
 
     processAddMoveRequest: function(req, res) {
-        var moveValue = req.body.value;
-        var userName = req.user.username;
+        var moveValue = req.body.value;     // move vlaue has already been checked using regex rule
+        var userName = req.user.username;   // The username is already authenticated by the middleware
         boardObj.getCurrActiveBoardOfUser(userName, function (err, data) {
             if (err) {
                 // console.log(err);

@@ -90,11 +90,12 @@ module.exports = function(app, passport, board) {
 			if (req.query.request == "ExistingGames") {
 				controller.processExistingGamesRequest(req, res);
 
-			} else if (req.query.request == "JoinExistingGame" && req.query.gameTitle) {
+			} else if (req.query.request == "JoinExistingGame" && req.query.gameTitle ) {
 
 				// Add regex for board/game name
 				var re = RegExp('^[A-Za-z0-9-_]*$');
-				if (req.query.gameTitle != "" && true == re.test(req.query.gameTitle)) {
+				if (req.query.gameTitle != "" && req.query.gameTitle.length <= 10
+					&& true == re.test(req.query.gameTitle)) {
 					controller.processJoinExistingGameRequest(req, res);
 				} else {
 					res.status(401).send("Invalid Game Title..");
@@ -115,7 +116,8 @@ module.exports = function(app, passport, board) {
 
 			// Add regex for board/game name
 			var re = RegExp('^[A-Za-z0-9-_]+$');
-			if (req.body.gameTitle && true == re.test(req.body.gameTitle)) {
+			if (req.body.gameTitle && req.query.gameTitle.length <= 10
+				&& true == re.test(req.body.gameTitle)) {
 				postController.processCreateNewGameRequest(req, res);
 			} else {
 				res.status(401).send("Invalid Game Title");
@@ -145,7 +147,9 @@ module.exports = function(app, passport, board) {
 				// Add regex for board/game name
 				var re = RegExp('^[A-Za-z0-9-_]+$');
 
-				if (req.query.boardName && true == re.test(req.query.boardName)) {
+				if (req.query.boardName && req.query.boardName.length <= 10
+					&& true == re.test(req.query.boardName)) {
+
 					var boardName = req.query.boardName;
 					var userName = req.user.username;
 					boardObj.getUserBoardStatus(boardName, userName, function(err, data) {
