@@ -43,14 +43,19 @@ module.exports = function(passport, connection) {
         },
         function(req, username, password, done) {
 
-            // check the length of username
-            if (username.length < 3 || username.length > 8) {
+            // check the conditions for username with regex
+            var re = RegExp('^[A-Za-z0-9_.]{3,12}$');
+            if (username.length < 3 || username.length > 8
+                || false == re.test(username)) {
+
                 return done(null, false, req.flash('signupMessage', 'That username is not valid.'));
             }
-            // check the conditions for username with regex
-            var re = RegExp('^[A-Za-z0-9_.]+$');
-            if (false == re.test(username)) {
-                return done(null, false, req.flash('signupMessage', 'That username is not valid.'));
+
+            // check the conditions for password with regex
+            var pasRE = RegExp('^[A-Za-z0-9_.@#$*()!^]{6,20}$');
+            if (false == pasRE.test(password)) {
+
+                return done(null, false, req.flash('signupMessage', 'That password is not valid.'));
             }
 
             // find a user whose username is the same as the forms email
@@ -93,12 +98,9 @@ module.exports = function(passport, connection) {
             passReqToCallback : true // allows us to pass back the entire request to the callback
         },
         function(req, username, password, done) { // callback with username and password from our form
-            // check the length of username
-            if (username.length < 3 || username.length > 8) {
-                return done(null, false, req.flash('loginMessage', 'Invalid user.'));
-            }
+
              // check the conditions for username with regex
-             var re = RegExp('^[A-Za-z0-9_.]+$');
+             var re = RegExp('^[A-Za-z0-9_.]{3,12}$');
              if (false == re.test(username)) {
                  return done(null, false, req.flash('loginMessage', 'No user found.'));
              }

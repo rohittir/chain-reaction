@@ -22,7 +22,6 @@
 	<% } %>
 
 	<!-- LOGIN FORM -->
-	<label>Username must be between 2 to 8 characters long and must not contain any special charaters other than numbers, english alphabates, '_' and '.'</label>
 	<form action="/signup" method="post">
 		<div class="form-group">
 			<label>Username</label>
@@ -35,6 +34,14 @@
 
 		<button type="submit" class="btn btn-warning btn-lg">Signup</button>
 	</form>
+	<label>Username and password rules</label>
+	<ul>
+		<li>Username must contain the characters between 3 to 12</li>
+		<li>Username must not contain any special characters other than '_' and '.'</li>
+		<li>Password must contain the charactes between 6 to 20</li>
+		<li>Password must not contain any special charactes than: _.@#$*()!^</li>
+		<li>Username and password can contain any numbers between 0 to 9 and english alphabates</li>
+	</ul>
 
 	<hr>
 
