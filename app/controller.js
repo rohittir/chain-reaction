@@ -41,7 +41,8 @@ module.exports = {
                                     gameData = gameData.concat(data2);
                                 }
                                 if (count == usersList.length) {
-                                    res.status(200).send(gameData);
+                                    var outdata = {"gameData": gameData};
+                                    res.status(200).send(outdata);
                                 }
                             });
                         }

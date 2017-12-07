@@ -45,16 +45,13 @@ module.exports = function(passport, connection) {
 
             // check the conditions for username with regex
             var re = RegExp('^[A-Za-z0-9_.]{3,12}$');
-            if (username.length < 3 || username.length > 8
-                || false == re.test(username)) {
-
+            if (false == re.test(username)) {
                 return done(null, false, req.flash('signupMessage', 'That username is not valid.'));
             }
 
             // check the conditions for password with regex
             var pasRE = RegExp('^[A-Za-z0-9_.@#$*()!^]{6,20}$');
             if (false == pasRE.test(password)) {
-
                 return done(null, false, req.flash('signupMessage', 'That password is not valid.'));
             }
 

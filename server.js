@@ -16,6 +16,7 @@ var session = require('express-session');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
+
 // Tool for logging
 var morgan = require('morgan');
 
@@ -57,11 +58,23 @@ app.set('view engine', 'ejs'); // set up ejs for templating
 app.use(session({
 	secret: 'somesecretofprojectswe681passportnodejsgameproject',
 	resave: true,
-	saveUninitialized: true
+	saveUninitialized: true,
+	cookie: { secure: true }
  } )); // session secret
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
 app.use(flash()); // use connect-flash for flash messages stored in session
+
+
+// for regenrating session ids
+var fixation = require('express-session-fixation');
+app.use(fixation({everyRequest: true}));
+
+app.use('/login', function(req, res, next) {
+    req.resetSessionID().then(function() {
+        next();
+    });
+});
 
 
 // Initialize routing

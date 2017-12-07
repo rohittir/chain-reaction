@@ -65,7 +65,7 @@
 	$.get("/profile", {'request': 'userGamesHistory'})
         .done( function (data, status) {
             if (data) {
-				gameData = data;
+				gameData = data.gameData;
 				displayGamesData(gameData);
 				if (gameData.length > 0) {
 					onShowMoves(0);
