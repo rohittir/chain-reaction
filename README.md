@@ -1,6 +1,6 @@
 
 # chain-reaction
-A secure online multiplayer web based game
+This is a secure online multiplayer web based game. Check out the rules here: https://brilliant.org/wiki/chain-reaction-game/
 
 Setup
 1. Download or clone the git repository to the local machine
